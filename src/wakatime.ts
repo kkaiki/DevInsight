@@ -3,6 +3,8 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+require('dotenv').config();
 
 import { COMMAND_DASHBOARD, LogLevel } from './constants';
 import { Options, Setting } from './options';
@@ -11,6 +13,15 @@ import { Dependencies } from './dependencies';
 import { Desktop } from './desktop';
 import { Logger } from './logger';
 import { Utils } from './utils';
+
+// awsの認証情報を設定
+const client = new DynamoDBClient({
+  region: "ap-southeast-2",
+  credentials: {
+    accessKeyId: "AKIAUBU2KERJLSUQHJCV",
+    secretAccessKey: "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",
+  },
+});
 
 interface FileSelection {
   selection: vscode.Position;
@@ -516,16 +527,41 @@ export class WakaTime {
     }, this.debounceMs);
   }
 
-  private sendHeartbeat(
+
+  private async sendHeartbeat(
     doc: vscode.TextDocument,
     time: number,
     selection: vscode.Position,
     isWrite: boolean,
     isCompiling: boolean,
     isDebugging: boolean,
-  ): void {
-    this.options.getApiKey((apiKey) => {
+  ): Promise<void> {
+    this.options.getApiKey(async (apiKey) => {
       if (apiKey) {
+        const date = new Date(time);
+        const discordId = "851228860119777330"; // 実際の不変のDiscord IDに置き換える
+
+        vscode.window.showInformationMessage(date.toString());
+
+        const params = {
+          TableName: 'dev_insight',
+          Item: {
+            discord_id: { S: discordId },
+            timestamp: { S: date.toISOString() }
+          }
+        };
+
+        try {
+          const command = new PutItemCommand(params);
+          await client.send(command);
+          
+          vscode.window.showInformationMessage("Data sent to DynamoDB: " + date.toString());
+        } catch (err) {
+          const error = err as Error;
+          console.error("Error adding item to DynamoDB", error);
+          vscode.window.showErrorMessage("Error adding item to DynamoDB: " + error.message);
+        }
+
         this._sendHeartbeat(doc, time, selection, isWrite, isCompiling, isDebugging);
       } else {
         this.promptForApiKey();

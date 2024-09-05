@@ -140,5 +140,10 @@
     "webpack": "^5.70.0",
     "webpack-cli": "^4.9.2",
     "which": "^2.0.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.645.0",
+    "aws-sdk": "^2.1689.0",
+    "dotenv": "^16.4.5"
   }
 }
