@@ -118,7 +118,14 @@
           "type": "string",
           "description": "Defaults to value from ~/.wakatime.cfg, unless running in browser.",
           "scope": "application"
+        },
+        "settings.discordId": {
+          "type": "string",
+          "description": "Your Discord ID",
+          "default": "",
+          "scope": "application"
         }
+
       }
     }
   },

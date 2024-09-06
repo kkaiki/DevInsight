@@ -237,30 +237,45 @@ export class Options {
     }
   }
 
+  public async setDiscordIdAsync(discordId: string): Promise<void> {
+    try {
+      // Discord IDを設定に保存
+      await vscode.workspace.getConfiguration('settings').update('discordId', discordId, vscode.ConfigurationTarget.Global);
+      this.cache.discordId = discordId; // キャッシュも更新
+  
+      // 設定が正しく保存されたか確認し、ユーザーに表示
+      const updatedDiscordId = await this.getSettingAsync<string>('settings', 'discordId');
+      if (updatedDiscordId === discordId) {
+        vscode.window.showInformationMessage(`Discord ID successfully updated to: ${updatedDiscordId}`);
+      } else {
+        vscode.window.showWarningMessage(`Discord ID update failed. Current value: ${updatedDiscordId}`);
+      }
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to update Discord ID: ${err}`);
+      throw err;
+    }
+  }
+  
   public async getDiscordIdAsync(): Promise<string> {
     // Check if the Discord ID is already cached
     if (this.cache.discordId !== null && this.cache.discordId !== undefined) {
-        vscode.window.showInformationMessage(this.cache.discordId);
-        return this.cache.discordId;
+      return this.cache.discordId;
     }
-
+  
     try {
-        // Attempt to fetch Discord ID from settings
-        const discordId = await this.getSettingAsync('settings', 'discordId');
-        vscode.window.showInformationMessage(discordId);
-        if (discordId !== null && discordId.trim() !== '') {
-            this.cache.discordId = discordId;
-            // vscode.window.showInformationMessage(this.cache.discordId);
-            return discordId;
-        }
+      // Attempt to fetch Discord ID from settings
+      const discordId = await this.getSettingAsync<string>('settings', 'discordId');
+      if (discordId !== null && discordId.trim() !== '') {
+        this.cache.discordId = discordId;
+        return discordId;
+      }
     } catch (err) {
-        this.logger.debug(`Exception while reading Discord ID from config file: ${err}`);
+      this.logger.debug(`Exception while reading Discord ID from config file: ${err}`);
     }
-
+  
     // If not found, return an empty string or handle as needed
     return '';
-}
-
+  }
 
 
 
