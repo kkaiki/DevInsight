@@ -28,6 +28,11 @@ export function activate(ctx: vscode.ExtensionContext) {
       wakatime.promptForApiKey();
     }),
   );
+  ctx.subscriptions.push(
+    vscode.commands.registerCommand('wakatime.discordId', function () {
+      wakatime.promptForDiscordId();
+    }),
+  );
 
   ctx.subscriptions.push(
     vscode.commands.registerCommand(COMMAND_PROXY, function () {

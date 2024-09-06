@@ -237,6 +237,33 @@ export class Options {
     }
   }
 
+  public async getDiscordIdAsync(): Promise<string> {
+    // Check if the Discord ID is already cached
+    if (this.cache.discordId !== null && this.cache.discordId !== undefined) {
+        vscode.window.showInformationMessage(this.cache.discordId);
+        return this.cache.discordId;
+    }
+
+    try {
+        // Attempt to fetch Discord ID from settings
+        const discordId = await this.getSettingAsync('settings', 'discordId');
+        vscode.window.showInformationMessage(discordId);
+        if (discordId !== null && discordId.trim() !== '') {
+            this.cache.discordId = discordId;
+            // vscode.window.showInformationMessage(this.cache.discordId);
+            return discordId;
+        }
+    } catch (err) {
+        this.logger.debug(`Exception while reading Discord ID from config file: ${err}`);
+    }
+
+    // If not found, return an empty string or handle as needed
+    return '';
+}
+
+
+
+
   public async getApiKeyFromVaultCmd(): Promise<string> {
     try {
       // Use basically the same logic as wakatime-cli to interpret cmdStr
@@ -295,6 +322,21 @@ export class Options {
       });
   }
 
+  public getDiscordId(callback: (discordId: string | null) => void): void {
+    this.getDiscordIdAsync()
+      .then((discordId) => {
+        if (discordId !== null && discordId.trim() !== '') {
+          callback(discordId);
+        } else {
+          callback(null);
+        }
+      })
+      .catch((err) => {
+        this.logger.warn(`Unable to get Discord ID: ${err}`);
+        callback(null);
+      });
+  }
+
   private getApiKeyFromEditor(): string {
     return vscode.workspace.getConfiguration().get('wakatime.apiKey') || '';
   }
@@ -324,6 +366,26 @@ export class Options {
         callback(false);
       });
   }
+
+
+
+  // private getDiscordIdFromEditor(): string | null {
+  //   // エディタの設定からDiscord IDを取得するロジックを実装
+  //   return null;
+  // }
+
+  // private getDiscordIdFromEnv(): string | null {
+  //   // 環境変数からDiscord IDを取得するロジックを実装
+  //   return process.env.DISCORD_ID || null;
+  // }
+
+  // private async getDiscordIdFromVaultCmd(): Promise<string | null> {
+  //   // VaultからDiscord IDを取得する非同期ロジックを実装
+  //   return null;
+  // }
+
+
+
 
   private startsWith(outer: string, inner: string): boolean {
     return outer.slice(0, inner.length) === inner;

@@ -75,6 +75,10 @@
         "title": "WakaTime: Api Key"
       },
       {
+        "command": "wakatime.discordId",
+        "title": "WakaTime: Discor Id"
+      },
+      {
         "command": "wakatime.proxy",
         "title": "WakaTime: Proxy"
       },

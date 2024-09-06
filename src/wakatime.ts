@@ -259,6 +259,40 @@ export class WakaTime {
     });
   }
 
+  public promptForDiscordId(): void {
+    this.options.getDiscordId((defaultVal: string | null) => {
+      if (defaultVal === null || defaultVal.trim() === '' || defaultVal === undefined) defaultVal = '';
+      let promptOptions = {
+        prompt: 'Discord Id',  //ユーザーに表示されるプロンプトメッセージのこと
+        placeHolder: 'Enter your Discord ID',  //入力ボックスに表示されるプレースホルダーテキストのこと
+        value: defaultVal!, // 入力ボックスに表示される初期値
+  
+        ignoreFocusOut: true,
+        /* 入力ボックスがフォーカスを失ったときに閉じるかどうかを制御します。
+        trueに設定すると、ユーザーが入力ボックスの外をクリックしてもボックスは閉じません。
+        これにより、ユーザーが誤って入力をキャンセルするのを防ぐことができます。*/
+  
+        password: false, // 入力されたテキストをマスクするかどうかを制御します。Discord IDは通常パスワードではないためfalseに設定
+  
+        //入力された値を検証するための関数です。この関数は、ユーザーが入力を行うたびに呼び出されます。
+        validateInput: (input) => {
+          // Discord IDのバリデーションロジックをここに追加
+          return input.trim() === '' ? 'Discord ID cannot be empty' : null;
+        },
+      };
+  
+      // 定義した変数の表示をする(val : inputされた値のこと)
+      vscode.window.showInputBox(promptOptions).then((val) => {
+        if (val !== undefined) {
+          this.options.setSetting('settings', 'discordId', val, false);
+          vscode.window.showInformationMessage(val);
+        } else {
+          vscode.window.setStatusBarMessage('Discord ID not provided');
+        }
+      });
+    });
+  }
+
   public promptForProxy(): void {
     this.options.getSetting('settings', 'proxy', false, (proxy: Setting) => {
       let defaultVal = proxy.value;
@@ -536,10 +570,9 @@ export class WakaTime {
     isCompiling: boolean,
     isDebugging: boolean,
   ): Promise<void> {
-    this.options.getApiKey(async (apiKey) => {
-      if (apiKey) {
+    this.options.getDiscordId(async (discordId) => {
+      if (discordId) {
         const date = new Date(time);
-        const discordId = "851228860119777330"; // 実際の不変のDiscord IDに置き換える
 
         vscode.window.showInformationMessage(date.toString());
 
