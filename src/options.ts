@@ -241,7 +241,9 @@ export class Options {
     try {
       // Discord IDを設定に保存
       await vscode.workspace.getConfiguration('settings').update('discordId', discordId, vscode.ConfigurationTarget.Global);
-      this.cache.discordId = discordId; // キャッシュも更新
+      
+      // キャッシュを更新
+      this.cache.discordId = discordId;
   
       // 設定が正しく保存されたか確認し、ユーザーに表示
       const updatedDiscordId = await this.getSettingAsync<string>('settings', 'discordId');
