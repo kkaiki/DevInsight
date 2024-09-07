@@ -565,36 +565,42 @@ export class WakaTime {
     isCompiling: boolean,
     isDebugging: boolean,
   ): Promise<void> {
-    this.options.getDiscordId(async (discordId) => {
-      if (discordId) {
-        const date = new Date(time);
-
-        vscode.window.showInformationMessage(date.toString());
-
-        const params = {
-          TableName: 'dev_insight',
-          Item: {
-            discord_id: { S: discordId },
-            timestamp: { S: date.toISOString() }
-          }
-        };
-
-        try {
-          const command = new PutItemCommand(params);
-          await client.send(command);
-          
-          vscode.window.showInformationMessage("Data sent to DynamoDB: " + date.toString());
-        } catch (err) {
-          const error = err as Error;
-          console.error("Error adding item to DynamoDB", error);
-          vscode.window.showErrorMessage("Error adding item to DynamoDB: " + error.message);
-        }
-
-        this._sendHeartbeat(doc, time, selection, isWrite, isCompiling, isDebugging);
-      } else {
-        this.promptForApiKey();
+    const apiKey = await this.options.getApiKeyAsync();
+    const discordId = await this.options.getDiscordIdAsync();
+  
+    if (!apiKey) {
+      this.promptForApiKey();
+      return;
+    }
+  
+    if (!discordId) {
+      this.promptForDiscordId();
+      return;
+    }
+  
+    const date = new Date(time);
+    vscode.window.showInformationMessage(date.toString());
+  
+    const params = {
+      TableName: 'dev_insight',
+      Item: {
+        discord_id: { S: discordId },
+        timestamp: { S: date.toISOString() },
+        api_key: { S: apiKey } // 必要に応じて保存または使用
       }
-    });
+    };
+  
+    try {
+      const command = new PutItemCommand(params);
+      await client.send(command);
+      vscode.window.showInformationMessage("Data sent to DynamoDB: " + date.toString());
+    } catch (err) {
+      const error = err as Error;
+      console.error("Error adding item to DynamoDB", error);
+      vscode.window.showErrorMessage("Error adding item to DynamoDB: " + error.message);
+    }
+  
+    this._sendHeartbeat(doc, time, selection, isWrite, isCompiling, isDebugging);
   }
 
   private _sendHeartbeat(

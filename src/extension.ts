@@ -29,7 +29,7 @@ export function activate(ctx: vscode.ExtensionContext) {
     }),
   );
   ctx.subscriptions.push(
-    vscode.commands.registerCommand('wakatime.discordid', function () {
+    vscode.commands.registerCommand('wakatime.discordid', function () { 
       wakatime.promptForDiscordId();
     }),
   );
