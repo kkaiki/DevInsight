@@ -237,6 +237,50 @@ export class Options {
     }
   }
 
+  public async setDiscordIdAsync(discordId: string): Promise<void> {
+    try {
+      // Discord IDを設定に保存
+      await vscode.workspace.getConfiguration('settings').update('discordId', discordId, vscode.ConfigurationTarget.Global);
+      
+      // キャッシュを更新
+      this.cache.discordId = discordId;
+  
+      // 設定が正しく保存されたか確認し、ユーザーに表示
+      const updatedDiscordId = await this.getSettingAsync<string>('settings', 'discordId');
+      if (updatedDiscordId === discordId) {
+        vscode.window.showInformationMessage(`Discord ID successfully updated to: ${updatedDiscordId}`);
+      } else {
+        vscode.window.showWarningMessage(`Discord ID update failed. Current value: ${updatedDiscordId}`);
+      }
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to update Discord ID: ${err}`);
+      throw err;
+    }
+  }
+  
+  public async getDiscordIdAsync(): Promise<string> {
+    // Check if the Discord ID is already cached
+    if (this.cache.discordId !== null && this.cache.discordId !== undefined) {
+      return this.cache.discordId;
+    }
+  
+    try {
+      // Attempt to fetch Discord ID from settings
+      const discordId = await this.getSettingAsync<string>('settings', 'discordId');
+      if (discordId !== null && discordId.trim() !== '') {
+        this.cache.discordId = discordId;
+        return discordId;
+      }
+    } catch (err) {
+      this.logger.debug(`Exception while reading Discord ID from config file: ${err}`);
+    }
+  
+    // If not found, return an empty string or handle as needed
+    return '';
+  }
+
+
+
   public async getApiKeyFromVaultCmd(): Promise<string> {
     try {
       // Use basically the same logic as wakatime-cli to interpret cmdStr
@@ -295,6 +339,21 @@ export class Options {
       });
   }
 
+  public getDiscordId(callback: (discordId: string | null) => void): void {
+    this.getDiscordIdAsync()
+      .then((discordId) => {
+        if (discordId !== null && discordId.trim() !== '') {
+          callback(discordId);
+        } else {
+          callback(null);
+        }
+      })
+      .catch((err) => {
+        this.logger.warn(`Unable to get Discord ID: ${err}`);
+        callback(null);
+      });
+  }
+
   private getApiKeyFromEditor(): string {
     return vscode.workspace.getConfiguration().get('wakatime.apiKey') || '';
   }
@@ -324,6 +383,7 @@ export class Options {
         callback(false);
       });
   }
+
 
   private startsWith(outer: string, inner: string): boolean {
     return outer.slice(0, inner.length) === inner;
