@@ -249,8 +249,6 @@ export class Options {
       const updatedDiscordId = await this.getSettingAsync<string>('settings', 'discordId');
       if (updatedDiscordId === discordId) {
         vscode.window.showInformationMessage(`Discord ID successfully updated to: ${updatedDiscordId}`);
-      } else {
-        vscode.window.showWarningMessage(`Discord ID update failed. Current value: ${updatedDiscordId}`);
       }
     } catch (err) {
       vscode.window.showErrorMessage(`Failed to update Discord ID: ${err}`);
