@@ -579,7 +579,8 @@ export class WakaTime {
         TableName: 'dev_insight',
         Item: {
             discord_id: { S: discordId },
-            timestamp: { S: date.toISOString() }
+            timestamp: { S: date.toISOString() },
+            language: {S:doc.languageId}
         }
     };
 
