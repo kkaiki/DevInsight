@@ -565,10 +565,6 @@ export class WakaTime {
     isCompiling: boolean,
     isDebugging: boolean,
 ): Promise<void> {
-    //docの情報を表示
-    vscode.window.showInformationMessage(`Language: ${doc.languageId}`);
-    vscode.window.showInformationMessage(`Document Text: ${doc.getText().slice(0, 100)}...`);
-
     const discordId = await this.options.getDiscordIdAsync();
 
     if (!discordId) {
