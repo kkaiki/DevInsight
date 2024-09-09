@@ -385,25 +385,6 @@ export class Options {
   }
 
 
-
-  // private getDiscordIdFromEditor(): string | null {
-  //   // エディタの設定からDiscord IDを取得するロジックを実装
-  //   return null;
-  // }
-
-  // private getDiscordIdFromEnv(): string | null {
-  //   // 環境変数からDiscord IDを取得するロジックを実装
-  //   return process.env.DISCORD_ID || null;
-  // }
-
-  // private async getDiscordIdFromVaultCmd(): Promise<string | null> {
-  //   // VaultからDiscord IDを取得する非同期ロジックを実装
-  //   return null;
-  // }
-
-
-
-
   private startsWith(outer: string, inner: string): boolean {
     return outer.slice(0, inner.length) === inner;
   }
