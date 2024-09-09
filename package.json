@@ -71,44 +71,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "wakatime.apikey",
-        "title": "WakaTime: Api Key"
-      },
-      {
         "command": "wakatime.discordid",
         "title": "WakaTime: Discor Id"
-      },
-      {
-        "command": "wakatime.proxy",
-        "title": "WakaTime: Proxy"
-      },
-      {
-        "command": "wakatime.debug",
-        "title": "WakaTime: Debug"
-      },
-      {
-        "command": "wakatime.disable",
-        "title": "WakaTime: Disable/Enable Extension"
-      },
-      {
-        "command": "wakatime.status_bar_enabled",
-        "title": "WakaTime: Status Bar Enabled"
-      },
-      {
-        "command": "wakatime.status_bar_coding_activity",
-        "title": "WakaTime: Status Bar Coding Activity"
-      },
-      {
-        "command": "wakatime.dashboard",
-        "title": "WakaTime: Open Dashboard"
-      },
-      {
-        "command": "wakatime.config_file",
-        "title": "WakaTime: Open Config File..."
-      },
-      {
-        "command": "wakatime.log_file",
-        "title": "WakaTime: Open Log File..."
       }
     ],
     "configuration": {
