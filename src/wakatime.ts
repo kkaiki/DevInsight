@@ -16,7 +16,7 @@ import { Utils } from './utils';
 
 // awsの認証情報を設定
 const client = new DynamoDBClient({
-  region: "ap-southeast-2",
+  region: "ap-northeast-1", // 東京リージョン
   credentials: {
     accessKeyId: "AKIAUBU2KERJLSUQHJCV",
     secretAccessKey: "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",
