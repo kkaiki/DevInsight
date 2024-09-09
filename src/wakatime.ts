@@ -573,7 +573,7 @@ export class WakaTime {
     }
 
     const date = new Date(time);
-    vscode.window.showInformationMessage(date.toString());
+    //vscode.window.showInformationMessage(date.toString());
 
     const params = {
         TableName: 'dev_insight',
@@ -587,7 +587,7 @@ export class WakaTime {
     try {
         const command = new PutItemCommand(params);
         await client.send(command);
-        vscode.window.showInformationMessage("Data sent to DynamoDB: " + date.toString());
+        //vscode.window.showInformationMessage("Data sent to DynamoDB: " + date.toString());
     } catch (err) {
         const error = err as Error;
         console.error("Error adding item to DynamoDB", error);
