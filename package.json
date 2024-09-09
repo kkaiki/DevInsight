@@ -72,7 +72,7 @@
     "commands": [
       {
         "command": "wakatime.discordid",
-        "title": "DevInsight: Discord Id"
+        "title": "DevInsight: Connect Discord Id"
       }
     ],
     "configuration": {
