@@ -75,6 +75,10 @@
         "title": "WakaTime: Api Key"
       },
       {
+        "command": "wakatime.discordid",
+        "title": "WakaTime: Discor Id"
+      },
+      {
         "command": "wakatime.proxy",
         "title": "WakaTime: Proxy"
       },
@@ -114,7 +118,14 @@
           "type": "string",
           "description": "Defaults to value from ~/.wakatime.cfg, unless running in browser.",
           "scope": "application"
+        },
+        "settings.discordId": {
+          "type": "string",
+          "description": "Your Discord ID",
+          "default": "",
+          "scope": "application"
         }
+
       }
     }
   },
@@ -140,5 +151,10 @@
     "webpack": "^5.70.0",
     "webpack-cli": "^4.9.2",
     "which": "^2.0.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.645.0",
+    "aws-sdk": "^2.1689.0",
+    "dotenv": "^16.4.5"
   }
 }

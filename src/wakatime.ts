@@ -3,6 +3,8 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+require('dotenv').config();
 
 import { COMMAND_DASHBOARD, LogLevel } from './constants';
 import { Options, Setting } from './options';
@@ -11,6 +13,15 @@ import { Dependencies } from './dependencies';
 import { Desktop } from './desktop';
 import { Logger } from './logger';
 import { Utils } from './utils';
+
+// awsの認証情報を設定
+const client = new DynamoDBClient({
+  region: "ap-northeast-1", // 東京リージョン
+  credentials: {
+    accessKeyId: "AKIAUBU2KERJLSUQHJCV",
+    secretAccessKey: "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",
+  },
+});
 
 interface FileSelection {
   selection: vscode.Position;
@@ -248,6 +259,35 @@ export class WakaTime {
     });
   }
 
+  public promptForDiscordId(): void {
+    this.options.getDiscordIdAsync().then((defaultVal: string) => {
+      if (!defaultVal || defaultVal.trim() === '') defaultVal = '';
+      const promptOptions = {
+        prompt: 'Discord ID',
+        placeHolder: 'Enter your Discord ID',
+        value: defaultVal,
+        ignoreFocusOut: true,
+        password: false,
+        validateInput: (input: string) => {
+          return input.trim() === '' ? 'Discord ID cannot be empty' : null;
+        },
+      };
+  
+      vscode.window.showInputBox(promptOptions).then((val) => {
+        if (val !== undefined) {
+          this.options.setDiscordIdAsync(val).then(() => {
+            vscode.window.showInformationMessage(`Discord ID set to: ${val}`);
+          }).catch((err) => {
+            vscode.window.showErrorMessage(`Failed to set Discord ID: ${err}`);
+          });
+        } else {
+          vscode.window.setStatusBarMessage('Discord ID not provided');
+        }
+      });
+    }).catch((err) => {
+      this.logger.error(`Failed to get default Discord ID: ${err}`);
+    });
+  }
   public promptForProxy(): void {
     this.options.getSetting('settings', 'proxy', false, (proxy: Setting) => {
       let defaultVal = proxy.value;
@@ -516,22 +556,45 @@ export class WakaTime {
     }, this.debounceMs);
   }
 
-  private sendHeartbeat(
+
+  private async sendHeartbeat(
     doc: vscode.TextDocument,
     time: number,
     selection: vscode.Position,
     isWrite: boolean,
     isCompiling: boolean,
     isDebugging: boolean,
-  ): void {
-    this.options.getApiKey((apiKey) => {
-      if (apiKey) {
-        this._sendHeartbeat(doc, time, selection, isWrite, isCompiling, isDebugging);
-      } else {
-        this.promptForApiKey();
-      }
-    });
-  }
+): Promise<void> {
+    const discordId = await this.options.getDiscordIdAsync();
+
+    if (!discordId) {
+        this.promptForDiscordId();
+        return;
+    }
+
+    const date = new Date(time);
+    vscode.window.showInformationMessage(date.toString());
+
+    const params = {
+        TableName: 'dev_insight',
+        Item: {
+            discord_id: { S: discordId },
+            timestamp: { S: date.toISOString() }
+        }
+    };
+
+    try {
+        const command = new PutItemCommand(params);
+        await client.send(command);
+        vscode.window.showInformationMessage("Data sent to DynamoDB: " + date.toString());
+    } catch (err) {
+        const error = err as Error;
+        console.error("Error adding item to DynamoDB", error);
+        vscode.window.showErrorMessage("Error adding item to DynamoDB: " + error.message);
+    }
+
+    this._sendHeartbeat(doc, time, selection, isWrite, isCompiling, isDebugging);
+}
 
   private _sendHeartbeat(
     doc: vscode.TextDocument,
