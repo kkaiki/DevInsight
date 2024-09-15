@@ -2,7 +2,7 @@
 
 [DevInsights] is a tool that automatically tracks the time you spend coding in Visual Studio Code and provides detailed insights into your productivity. It also integrates with Discord to rank total coding time, allowing you to see which users have worked the most. Additionally, DevInsights can be used with multiple IDEs and editors, enabling a comprehensive view of your coding activity across different platforms.
 
-Installation
+## Installation
 1.Press F1 or ⌘ + Shift + P and type install. Pick Extensions: Install Extension.
 
 2.Type devinsights and hit enter.
