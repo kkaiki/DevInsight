@@ -264,12 +264,18 @@ export class WakaTime {
       if (!defaultVal || defaultVal.trim() === '') defaultVal = '';
       const promptOptions = {
         prompt: 'Discord ID',
-        placeHolder: 'Enter your Discord ID',
+        placeHolder: 'Enter your Discord ID (18-19 digit number)',
         value: defaultVal,
         ignoreFocusOut: true,
         password: false,
         validateInput: (input: string) => {
-          return input.trim() === '' ? 'Discord ID cannot be empty' : null;
+          if (input.trim() === '') {
+            return 'Discord ID cannot be empty';
+          }
+          if (!/^\d{18,19}$/.test(input)) {
+            return 'Discord ID must be an 18-19 digit number. This is not your username.';
+          }
+          return null;
         },
       };
   
@@ -277,17 +283,17 @@ export class WakaTime {
         if (val !== undefined) {
           this.options.setDiscordIdAsync(val).then(() => {
             vscode.window.showInformationMessage(`Discord ID set to: ${val}`);
-          }).catch((err) => {
-            vscode.window.showErrorMessage(`Failed to set Discord ID: ${err}`);
           });
         } else {
-          vscode.window.setStatusBarMessage('Discord ID not provided');
+          vscode.window.showWarningMessage('Discord ID not provided');
         }
       });
     }).catch((err) => {
       this.logger.error(`Failed to get default Discord ID: ${err}`);
+      vscode.window.showErrorMessage(`Failed to get default Discord ID: ${err}`);
     });
   }
+  
   public promptForProxy(): void {
     this.options.getSetting('settings', 'proxy', false, (proxy: Setting) => {
       let defaultVal = proxy.value;
