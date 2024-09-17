@@ -71,7 +71,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "wakatime.discordid",
+        "command": "devinsights.discordid",
         "title": "DevInsights: Input Discord unique Id(数字のみの値です。開発者モードを有効にしてください)"
       }
     ],
