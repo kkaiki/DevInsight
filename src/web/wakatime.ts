@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { COMMAND_DASHBOARD, LogLevel } from '../constants';
+import { LogLevel } from '../constants';
 
 import { Logger } from './logger';
 import { Memento } from 'vscode';
@@ -83,7 +83,7 @@ export class WakaTime {
       3,
     );
     this.statusBar.name = 'WakaTime';
-    this.statusBar.command = COMMAND_DASHBOARD;
+    // this.statusBar.command = COMMAND_DASHBOARD;
 
     this.statusBarTeamYou = vscode.window.createStatusBarItem(
       'com.wakatime.teamyou',
@@ -189,26 +189,26 @@ export class WakaTime {
     });
   }
 
-  public promptForDebug(): void {
-    let defaultVal: string = this.config.get('wakatime.debug') || '';
-    if (!defaultVal || defaultVal !== 'true') defaultVal = 'false';
-    let items: string[] = ['true', 'false'];
-    let promptOptions = {
-      placeHolder: `true or false (current value \"${defaultVal}\")`,
-      value: defaultVal,
-      ignoreFocusOut: true,
-    };
-    vscode.window.showQuickPick(items, promptOptions).then((newVal) => {
-      if (newVal == null) return;
-      this.config.update('wakatime.debug', newVal);
-      if (newVal === 'true') {
-        this.logger.setLevel(LogLevel.DEBUG);
-        this.logger.debug('Debug enabled');
-      } else {
-        this.logger.setLevel(LogLevel.INFO);
-      }
-    });
-  }
+  // public promptForDebug(): void {
+  //   let defaultVal: string = this.config.get('wakatime.debug') || '';
+  //   if (!defaultVal || defaultVal !== 'true') defaultVal = 'false';
+  //   let items: string[] = ['true', 'false'];
+  //   let promptOptions = {
+  //     placeHolder: `true or false (current value \"${defaultVal}\")`,
+  //     value: defaultVal,
+  //     ignoreFocusOut: true,
+  //   };
+  //   vscode.window.showQuickPick(items, promptOptions).then((newVal) => {
+  //     if (newVal == null) return;
+  //     this.config.update('wakatime.debug', newVal);
+  //     if (newVal === 'true') {
+  //       this.logger.setLevel(LogLevel.DEBUG);
+  //       this.logger.debug('Debug enabled');
+  //     } else {
+  //       this.logger.setLevel(LogLevel.INFO);
+  //     }
+  //   });
+  // }
 
   public promptToDisable(): void {
     const previousValue = this.disabled;

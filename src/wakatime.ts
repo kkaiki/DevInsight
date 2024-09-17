@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 require('dotenv').config();
 
-import { COMMAND_DASHBOARD, LogLevel } from './constants';
+import { LogLevel } from './constants';
 import { Options, Setting } from './options';
 
 import { Dependencies } from './dependencies';
@@ -138,7 +138,7 @@ export class WakaTime {
       3,
     );
     this.statusBar.name = 'WakaTime';
-    this.statusBar.command = COMMAND_DASHBOARD;
+    // this.statusBar.command = COMMAND_DASHBOARD;
 
     this.statusBarTeamYou = vscode.window.createStatusBarItem(
       'com.wakatime.teamyou',
