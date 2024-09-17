@@ -1,11 +1,11 @@
 {
-  "name": "vscode-DevInsight",
-  "displayName": "DevInsight",
+  "name": "vscode-DevInsights",
+  "displayName": "DevInsights",
   "description": "Metrics, insights, and time tracking automatically generated from your programming activity.",
-  "version": "24.6.2",
-  "publisher": "DevInsight",
+  "version": "25.5.0",
+  "publisher": "DevInsights",
   "author": {
-    "name": "DevInsight"
+    "name": "DevInsights"
   },
   "categories": [
     "Visualization",
@@ -54,7 +54,7 @@
     "url": "https://github.com/wakatime/vscode-wakatime.git"
   },
   "engines": {
-    "vscode": "^1.59.0",
+    "vscode": "^1.91.1",
     "sqlops": "*",
     "azdata": "*"
   },
@@ -72,7 +72,7 @@
     "commands": [
       {
         "command": "wakatime.discordid",
-        "title": "DevInsight: Input Discord Id"
+        "title": "DevInsights: Input Discord unique Id(数字のみの値です。開発者モードを有効にしてください)"
       }
     ],
     "configuration": {
@@ -98,7 +98,7 @@
     "@types/mocha": "^10.0.7",
     "@types/node": "^17.0.45",
     "@types/request": "^2.48.12",
-    "@types/vscode": "^1.93.0",
+    "@types/vscode": "^1.91.1",
     "@types/webpack": "^5.28.5",
     "@types/which": "^2.0.2",
     "@vscode/test-web": "^0.0.22",
