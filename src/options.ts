@@ -251,7 +251,6 @@ export class Options {
         vscode.window.showInformationMessage(`Discord ID successfully updated to: ${updatedDiscordId}`);
       }
     } catch (err) {
-      vscode.window.showErrorMessage(`Failed to update Discord ID: ${err}`);
       throw err;
     }
   }

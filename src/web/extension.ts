@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 
 import {
-  COMMAND_API_KEY,
-  COMMAND_DASHBOARD,
-  COMMAND_DEBUG,
-  COMMAND_DISABLE,
-  COMMAND_STATUS_BAR_CODING_ACTIVITY,
-  COMMAND_STATUS_BAR_ENABLED,
+  // COMMAND_API_KEY,
+  // COMMAND_DASHBOARD,
+  // COMMAND_DEBUG,
+  // COMMAND_DISABLE,
+  // COMMAND_STATUS_BAR_CODING_ACTIVITY,
+  // COMMAND_STATUS_BAR_ENABLED,
   LogLevel,
 } from '../constants';
 import { Logger } from './logger';
@@ -18,43 +18,43 @@ var wakatime: WakaTime;
 export function activate(ctx: vscode.ExtensionContext) {
   wakatime = new WakaTime(logger, ctx.globalState);
 
-  ctx.globalState?.setKeysForSync(['wakatime.apiKey']);
+  // ctx.globalState?.setKeysForSync(['wakatime.apiKey']);
 
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand(COMMAND_API_KEY, function () {
-      wakatime.promptForApiKey();
-    }),
-  );
+  // ctx.subscriptions.push(
+  //   vscode.commands.registerCommand(COMMAND_API_KEY, function () {
+  //     wakatime.promptForApiKey();
+  //   }),
+  // );
 
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand(COMMAND_DEBUG, function () {
-      wakatime.promptForDebug();
-    }),
-  );
+  // ctx.subscriptions.push(
+  //   vscode.commands.registerCommand(COMMAND_DEBUG, function () {
+  //     wakatime.promptForDebug();
+  //   }),
+  // );
 
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand(COMMAND_DISABLE, function () {
-      wakatime.promptToDisable();
-    }),
-  );
+  // ctx.subscriptions.push(
+  //   vscode.commands.registerCommand(COMMAND_DISABLE, function () {
+  //     wakatime.promptToDisable();
+  //   }),
+  // );
 
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand(COMMAND_STATUS_BAR_ENABLED, function () {
-      wakatime.promptStatusBarIcon();
-    }),
-  );
+  // ctx.subscriptions.push(
+  //   vscode.commands.registerCommand(COMMAND_STATUS_BAR_ENABLED, function () {
+  //     wakatime.promptStatusBarIcon();
+  //   }),
+  // );
 
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand(COMMAND_STATUS_BAR_CODING_ACTIVITY, function () {
-      wakatime.promptStatusBarCodingActivity();
-    }),
-  );
+  // ctx.subscriptions.push(
+  //   vscode.commands.registerCommand(COMMAND_STATUS_BAR_CODING_ACTIVITY, function () {
+  //     wakatime.promptStatusBarCodingActivity();
+  //   }),
+  // );
 
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand(COMMAND_DASHBOARD, function () {
-      wakatime.openDashboardWebsite();
-    }),
-  );
+  // ctx.subscriptions.push(
+  //   vscode.commands.registerCommand(COMMAND_DASHBOARD, function () {
+  //     wakatime.openDashboardWebsite();
+  //   }),
+  // );
 
   ctx.subscriptions.push(wakatime);
   wakatime.initialize();

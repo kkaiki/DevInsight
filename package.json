@@ -1,8 +1,8 @@
 {
-  "name": "vscode-DevInsights",
+  "name": "DevInsights",
   "displayName": "DevInsights",
   "description": "Metrics, insights, and time tracking automatically generated from your programming activity.",
-  "version": "25.5.0",
+  "version": "25.6.0",
   "publisher": "DevInsights",
   "author": {
     "name": "DevInsights"
@@ -29,16 +29,9 @@
     "todo",
     "tracker",
     "tracking",
-    "worktime",
-    "wakatime"
+    "worktime"
   ],
-  "homepage": "https://wakatime.com/",
-  "bugs": {
-    "url": "https://github.com/wakatime/vscode-wakatime/issues",
-    "email": "support@wakatime.com"
-  },
   "license": "BSD-3-Clause",
-  "icon": "images/wakatime-logo.png",
   "galleryBanner": {
     "color": "#AEC3D8",
     "theme": "light"
@@ -49,10 +42,6 @@
   "activationEvents": [
     "*"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/wakatime/vscode-wakatime.git"
-  },
   "engines": {
     "vscode": "^1.91.1",
     "sqlops": "*",
@@ -76,13 +65,8 @@
       }
     ],
     "configuration": {
-      "title": "WakaTime",
+      "title": "DevInsights",
       "properties": {
-        "wakatime.apiKey": {
-          "type": "string",
-          "description": "Defaults to value from ~/.wakatime.cfg, unless running in browser.",
-          "scope": "application"
-        },
         "settings.discordId": {
           "type": "string",
           "description": "Your Discord ID",
