@@ -165,7 +165,7 @@ export class WakaTime {
           this.setStatusBarVisibility(this.showStatusBar);
           this.updateStatusBarText('WakaTime Initializing...');
 
-          this.checkApiKey();
+          // this.checkApiKey();
 
           this.setupEventListeners();
 
@@ -237,27 +237,27 @@ export class WakaTime {
     this.statusBarTeamOther.tooltip = tooltipText;
   }
 
-  public promptForApiKey(hidden: boolean = true): void {
-    this.options.getApiKey((defaultVal: string | null) => {
-      if (Utils.apiKeyInvalid(defaultVal ?? undefined)) defaultVal = '';
-      let promptOptions = {
-        prompt: 'WakaTime Api Key',
-        placeHolder: 'Enter your api key from https://wakatime.com/api-key',
-        value: defaultVal!,
-        ignoreFocusOut: true,
-        password: hidden,
-        validateInput: Utils.apiKeyInvalid.bind(this),
-      };
-      vscode.window.showInputBox(promptOptions).then((val) => {
-        if (val != undefined) {
-          let invalid = Utils.apiKeyInvalid(val);
-          if (!invalid) {
-            this.options.setSetting('settings', 'api_key', val, false);
-          } else vscode.window.setStatusBarMessage(invalid);
-        } else vscode.window.setStatusBarMessage('WakaTime api key not provided');
-      });
-    });
-  }
+  // public promptForApiKey(hidden: boolean = true): void {
+  //   this.options.getApiKey((defaultVal: string | null) => {
+  //     if (Utils.apiKeyInvalid(defaultVal ?? undefined)) defaultVal = '';
+  //     let promptOptions = {
+  //       prompt: 'WakaTime Api Key',
+  //       placeHolder: 'Enter your api key from https://wakatime.com/api-key',
+  //       value: defaultVal!,
+  //       ignoreFocusOut: true,
+  //       password: hidden,
+  //       validateInput: Utils.apiKeyInvalid.bind(this),
+  //     };
+  //     vscode.window.showInputBox(promptOptions).then((val) => {
+  //       if (val != undefined) {
+  //         let invalid = Utils.apiKeyInvalid(val);
+  //         if (!invalid) {
+  //           this.options.setSetting('settings', 'api_key', val, false);
+  //         } else vscode.window.setStatusBarMessage(invalid);
+  //       } else vscode.window.setStatusBarMessage('WakaTime api key not provided');
+  //     });
+  //   });
+  // }
 
   public promptForDiscordId(): void {
     this.options.getDiscordIdAsync().then((defaultVal: string) => {
@@ -442,11 +442,11 @@ export class WakaTime {
     }
   }
 
-  private checkApiKey(): void {
-    this.options.hasApiKey((hasApiKey) => {
-      if (!hasApiKey) this.promptForApiKey();
-    });
-  }
+  // private checkApiKey(): void {
+  //   this.options.hasApiKey((hasApiKey) => {
+  //     if (!hasApiKey) this.promptForApiKey();
+  //   });
+  // }
 
   private setStatusBarVisibility(isVisible: boolean): void {
     if (isVisible) {
@@ -709,7 +709,7 @@ export class WakaTime {
         let now: number = Date.now();
         if (this.lastApiKeyPrompted < now - 86400000) {
           // only prompt once per day
-          this.promptForApiKey(false);
+          // this.promptForApiKey(false);
           this.lastApiKeyPrompted = now;
         }
       } else {
