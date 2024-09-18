@@ -2,7 +2,7 @@
   "name": "DevInsights",
   "displayName": "DevInsights",
   "description": "Metrics, insights, and time tracking automatically generated from your programming activity.",
-  "version": "25.6.0",
+  "version": "25.8.0",
   "publisher": "DevInsights",
   "author": {
     "name": "DevInsights"
@@ -70,7 +70,6 @@
         "settings.discordId": {
           "type": "string",
           "description": "Your Discord ID",
-          "default": "",
           "scope": "application"
         }
       }
