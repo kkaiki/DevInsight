@@ -105,5 +105,14 @@
     "@aws-sdk/client-dynamodb": "^3.645.0",
     "aws-sdk": "^2.1691.0",
     "dotenv": "^16.4.5"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/DevInsights.git"
+  },
+  "icon": "images/wakatime-logo.png",
+  "bugs": {
+    "url": "https://github.com/yourusername/DevInsights/issues"
+  },
+  "homepage": "https://github.com/yourusername/DevInsights#readme"
 }
