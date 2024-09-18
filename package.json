@@ -1,5 +1,5 @@
 {
-  "name": "DevInsights",
+  "name": "vscode-DevInsights",
   "displayName": "DevInsights",
   "description": "Metrics, insights, and time tracking automatically generated from your programming activity.",
   "version": "25.8.0",
