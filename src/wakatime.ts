@@ -579,7 +579,7 @@ export class WakaTime {
     }
 
     const date = new Date(time);
-    //vscode.window.showInformationMessage(date.toString());
+    date.setHours(date.getHours() + 9); // 日本時間に変換
 
     const params = {
         TableName: 'dev_insight',
