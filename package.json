@@ -2,7 +2,7 @@
   "name": "vscode-DevInsights",
   "displayName": "DevInsights",
   "description": "Metrics, insights, and time tracking automatically generated from your programming activity.",
-  "version": "25.9.0",
+  "version": "26.0.0",
   "publisher": "DevInsights",
   "author": {
     "name": "DevInsights"
