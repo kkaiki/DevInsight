@@ -70,7 +70,8 @@
         "settings.discordId": {
           "type": "string",
           "description": "Your Discord ID",
-          "scope": "application"
+          "scope": "machine-overridable",
+          "default": ""
         }
       }
     }
