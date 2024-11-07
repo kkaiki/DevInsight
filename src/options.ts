@@ -239,43 +239,29 @@ export class Options {
 
   public async setDiscordIdAsync(discordId: string): Promise<void> {
     try {
-      // Discord IDを設定に保存
-      await vscode.workspace.getConfiguration('settings').update('discordId', discordId, vscode.ConfigurationTarget.Global);
-      
-      // キャッシュを更新
-      this.cache.discordId = discordId;
-  
-      // 設定が正しく保存されたか確認し、ユーザーに表示
-      const updatedDiscordId = await this.getSettingAsync<string>('settings', 'discordId');
-      if (updatedDiscordId === discordId) {
-        vscode.window.showInformationMessage(`Discord ID successfully updated to: ${updatedDiscordId}`);
-      }
-    } catch (err) {
-      throw err;
-    }
-  }
-  
-  public async getDiscordIdAsync(): Promise<string> {
-    // Check if the Discord ID is already cached
-    if (this.cache.discordId !== null && this.cache.discordId !== undefined) {
-      return this.cache.discordId;
-    }
-  
-    try {
-      // Attempt to fetch Discord ID from settings
-      const discordId = await this.getSettingAsync<string>('settings', 'discordId');
-      if (discordId !== null && discordId.trim() !== '') {
+        // Global スコープで設定を保存
+        await vscode.workspace.getConfiguration().update('settings.discordId', discordId, vscode.ConfigurationTarget.Global);
         this.cache.discordId = discordId;
-        return discordId;
-      }
     } catch (err) {
-      this.logger.debug(`Exception while reading Discord ID from config file: ${err}`);
+        throw err;
     }
-  
-    // If not found, return an empty string or handle as needed
-    return '';
   }
 
+  public async getDiscordIdAsync(): Promise<string> {
+      // キャッシュをチェック
+      if (this.cache.discordId) {
+          return this.cache.discordId;
+      }
+
+      // 設定から読み込み
+      const discordId = vscode.workspace.getConfiguration().get<string>('settings.discordId');
+      if (discordId) {
+          this.cache.discordId = discordId;
+          return discordId;
+      }
+
+      return '';
+  }
 
 
   public async getApiKeyFromVaultCmd(): Promise<string> {

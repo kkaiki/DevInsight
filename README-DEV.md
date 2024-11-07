@@ -28,5 +28,3 @@ vsce package
 
 package.jsonファイルを変更してもバージョンアップされないエラーに遭遇したため記載(m1 macbook air)
 npm version 26.0.1 --force --no-git-tag-version
-
-
