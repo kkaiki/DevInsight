@@ -2,7 +2,7 @@
   "name": "vscode-DevInsights",
   "displayName": "DevInsights",
   "description": "Metrics, insights, and time tracking automatically generated from your programming activity.",
-  "version": "26.0.0",
+  "version": "26.0.2",
   "publisher": "DevInsights",
   "author": {
     "name": "DevInsights"
@@ -31,7 +31,7 @@
     "tracking",
     "worktime"
   ],
-  "license": "BSD-3-Clause",
+  "license": "No license",
   "galleryBanner": {
     "color": "#AEC3D8",
     "theme": "light"
