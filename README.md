@@ -1,47 +1,54 @@
 # DevInsights for Visual Studio Code
 
-[DevInsights] is a tool that automatically tracks the time you spend coding in Visual Studio Code and provides detailed insights into your productivity. It also integrates with Discord to rank total coding time, allowing you to see which users have worked the most. Additionally, DevInsights can be used with multiple IDEs and editors, enabling a comprehensive view of your coding activity across different platforms.
+[DevInsights] は、Visual Studio Code でのコーディングに費やした時間を自動的に追跡し、生産性に関する詳細な洞察を提供するツールです。また、Discord と統合されており、総コーディング時間をランキング表示することで、どのユーザーが最も作業したかを確認できます。さらに、DevInsights は複数の IDE やエディタと連携できるため、さまざまなプラットフォームでのコーディング活動を包括的に把握できます。
 
-## Installation
-1.Press F1 or ⌘ + Shift + P and type install. Pick Extensions: Install Extension.
+## インストール
 
-2.Type devinsights and hit enter.
+1. F1 キーまたは ⌘ + Shift + P を押して「install」と入力します。次に「Extensions: Install Extension」を選択します。
+![コマンドパレットを開く](images/extentions_install.png)
 
-3.Enter your Discord ID, then press enter.
-(If you’re not prompted, press F1 or ⌘ + Shift + P then type DevInsights Discord ID.)
-   How to Copy Your Discord ID:
-      Open Discord and go to User Settings.
-      Under Advanced, enable Developer Mode.
-      Right-click your username in the user list or your profile, and select Copy ID.
-4.Use VSCode and your coding activity will be ranked weekly.
+2. 「devinsights」と入力し、Enter キーを押します。
 
-## Usage
+3. Discord ID を入力し、Enter キーを押します。
+   （プロンプトが表示されない場合は、F1 キーまたは ⌘ + Shift + P を押して「DevInsights Discord ID」と入力してください。）
 
-Each week, a Discord bot ranks users based on the amount of time they have spent coding, providing a leaderboard of coding activity.
+   **Discord ID のコピー方法:**
+   - Discord を開き、ユーザー設定に移動します。
+   ![コマンドパレットを開く](images/user_setting.png)
+   - 「詳細設定」の下で「開発者モード」を有効にします。
+   ![コマンドパレットを開く](images/developer_mode.png)
+   - ユーザーリスト内のユーザー名またはプロフィールを右クリックし、「ID をコピー」を選択します。
+   ![コマンドパレットを開く](images/copy_userid.png)
 
-## Configuring
+4. VS Code を使用すると、コーディング活動が毎週ランキングされます。
 
-VS Code Configuration:
-Press ⌘ + Shift + P and type DevInsights: Input Discord Id to set your Discord ID.
+## 使用方法
 
-## Troubleshooting
+毎週、Discord ボットがユーザーをコーディングに費やした時間に基づいてランク付けし、コーディング活動のリーダーボードを提供します。
 
-Checking Error Logs:
-Errors outside the scope of DevInsights are recorded in the $HOME/.devinsights/devinsights.log file.
+## 設定
 
-Information for Windows Users:
-If you are using DevInsights behind a corporate proxy, it is recommended to enable your Windows Root Certs inside VS Code by installing the [win-ca] extension. Press Ctrl + Shift + X, search for win-ca, and install it.
+**VS Code の設定:**
+⌘ + Shift + P を押して「DevInsights: Input Discord Id」と入力し、Discord ID を設定します。
 
-### SSH configuration
+## トラブルシューティング
 
-If you're connected to a remote host using the [ssh extension](https://code.visualstudio.com/docs/remote/ssh) you might want to force DevInshghts to run locally instead on the server. This configuration is needed when the server you connect is shared among other people. Please follow [this](https://code.visualstudio.com/docs/remote/ssh#_advanced-forcing-an-extension-to-run-locally-remotely) guide.
+**エラーログの確認:**
+DevInsights の範囲外のエラーは、`$HOME/.devinsights/devinsights.log` ファイルに記録されます。
 
-## Uninstalling
+**Windows ユーザー向け情報:**
+DevInsights を企業のプロキシの背後で使用している場合、[win-ca] 拡張機能をインストールして VS Code 内で Windows のルート証明書を有効にすることをお勧めします。Ctrl + Shift + X を押して「win-ca」を検索し、インストールします。
 
-1.Click the Extensions sidebar item in VS Code.
+### SSH 設定
 
-2.Type devinsights and hit enter.
+[ssh extension](https://code.visualstudio.com/docs/remote/ssh) を使用してリモートホストに接続している場合、DevInsights をサーバーではなくローカルで実行するよう強制することを検討してください。この設定は、接続先のサーバーが他の人と共有されている場合に必要です。 [こちら](https://code.visualstudio.com/docs/remote/ssh#_advanced-forcing-an-extension-to-run-locally-remotely) のガイドに従ってください。
 
-3.Click the settings icon next to DevInsights, then click Uninstall.
+## アンインストール
 
-4.Delete the ~/.devinsights* files in your home directory, unless you’re still using DevInsights with another IDE.
+1. VS Code の Extensions サイドバー項目をクリックします。
+
+2. 「devinsights」と入力し、Enter キーを押します。
+
+3. DevInsights の横にある設定アイコンをクリックし、「Uninstall」を選択します。
+
+4. ホームディレクトリ内の `~/.devinsights*` ファイルを削除します。ただし、他の IDE で DevInsights をまだ使用している場合は削除しないでください。
