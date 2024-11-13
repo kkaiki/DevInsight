@@ -30,25 +30,3 @@
 
 **VS Code の設定:**
 ⌘ + Shift + P を押して「DevInsights: Input Discord Id」と入力し、Discord ID を設定します。
-
-## トラブルシューティング
-
-**エラーログの確認:**
-DevInsights の範囲外のエラーは、`$HOME/.devinsights/devinsights.log` ファイルに記録されます。
-
-**Windows ユーザー向け情報:**
-DevInsights を企業のプロキシの背後で使用している場合、[win-ca] 拡張機能をインストールして VS Code 内で Windows のルート証明書を有効にすることをお勧めします。Ctrl + Shift + X を押して「win-ca」を検索し、インストールします。
-
-### SSH 設定
-
-[ssh extension](https://code.visualstudio.com/docs/remote/ssh) を使用してリモートホストに接続している場合、DevInsights をサーバーではなくローカルで実行するよう強制することを検討してください。この設定は、接続先のサーバーが他の人と共有されている場合に必要です。 [こちら](https://code.visualstudio.com/docs/remote/ssh#_advanced-forcing-an-extension-to-run-locally-remotely) のガイドに従ってください。
-
-## アンインストール
-
-1. VS Code の Extensions サイドバー項目をクリックします。
-
-2. 「devinsights」と入力し、Enter キーを押します。
-
-3. DevInsights の横にある設定アイコンをクリックし、「Uninstall」を選択します。
-
-4. ホームディレクトリ内の `~/.devinsights*` ファイルを削除します。ただし、他の IDE で DevInsights をまだ使用している場合は削除しないでください。
