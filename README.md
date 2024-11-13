@@ -1,18 +1,20 @@
-# DevInsights for Visual Studio Code
+# DevInsights
 
-[DevInsights] は、Visual Studio Code でのコーディングに費やした時間を自動的に追跡し、生産性に関する詳細な洞察を提供するツールです。また、Discord と統合されており、総コーディング時間をランキング表示することで、どのユーザーが最も作業したかを確認できます。さらに、DevInsights は複数の IDE やエディタと連携できるため、さまざまなプラットフォームでのコーディング活動を包括的に把握できます。
+## Backgroud and Summary
+
+[DevInsights] は、コーディングに費やした時間を自動的に追跡し可視化するツールです。また、Discordと統合されており、総コーディング時間をランキング表示することで、どのユーザーが最も作業したかを確認できます！新たな視点からどれくらいメンバーが頑張っているかを確認できます！
 
 ## インストール
 
-1. F1 キーまたは ⌘ + Shift + P を押して「install」と入力します。次に「Extensions: Install Extension」を選択します。
+1. 拡張機能ストアへ移動してください！
 ![コマンドパレットを開く](images/extentions_install.png)
 
 2. 「devinsights」と入力し、Enter キーを押します。
 
-3. Discord ID を入力し、Enter キーを押します。
-   （プロンプトが表示されない場合は、F1 キーまたは ⌘ + Shift + P を押して「DevInsights Discord ID」と入力してください。）
+3. Discord Unique ID を入力し、Enter キーを押します。
+   （入力欄が表示されない場合は、F1 キーまたは ⌘ + Shift + P を押して「DevInsights Discord ID」などと入力してください。）
 
-   **Discord ID のコピー方法:**
+   **Discord Unique ID のコピー方法:**
    - Discord を開き、ユーザー設定に移動します。
    ![コマンドパレットを開く](images/user_setting.png)
    - 「詳細設定」の下で「開発者モード」を有効にします。
@@ -26,7 +28,4 @@
 
 毎週、Discord ボットがユーザーをコーディングに費やした時間に基づいてランク付けし、コーディング活動のリーダーボードを提供します。
 
-## 設定
-
-**VS Code の設定:**
-⌘ + Shift + P を押して「DevInsights: Input Discord Id」と入力し、Discord ID を設定します。
+使用時間はコーディングをしている時間またはファイルを切り替えた時がカウントされるため、ただエディタを開いているだけでは正しく計測されません。
