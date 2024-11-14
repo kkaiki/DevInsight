@@ -1,0 +1,12 @@
+dist
+out/**
+node_modules
+wakatime-cli
+.vscode-test/**
+.vscode-test-web/**
+*.vsix
+npm-debug.log*
+.DS_Store
+wakatime-master
+tags
+*.zip
