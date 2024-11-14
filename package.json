@@ -2,7 +2,7 @@
   "name": "vscode-DevInsights",
   "displayName": "DevInsights",
   "description": "Metrics, insights, and time tracking automatically generated from your programming activity.",
-  "version": "26.1.1",
+  "version": "26.1.2",
   "publisher": "DevInsights",
   "author": {
     "name": "DevInsights"
@@ -97,7 +97,7 @@
     "ts-loader": "^9.5.1",
     "tslib": "^2.7.0",
     "typescript": "^4.9.5",
-    "webpack": "^5.94.0",
+    "webpack": "^5.96.1",
     "webpack-cli": "^4.10.0",
     "which": "^2.0.2"
   },
