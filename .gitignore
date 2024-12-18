@@ -11,3 +11,6 @@ wakatime-master
 tags
 *.zip
 DevInsight
+function.zip
+bootstrap
+go.mod
