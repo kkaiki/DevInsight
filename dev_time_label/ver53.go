@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "log"
+    "os"
     "sort"
     "time"
 
@@ -21,12 +22,6 @@ var sess = session.Must(session.NewSession(&aws.Config{
 }))
 var svc = dynamodb.New(sess)
 var tableName = "dev_insight"
-
-// Discord bot token and guild ID
-const (
-    Token   = "MTI4MjAwNjc1MDQ5MjM2NDk4MA.GJqJcq.t0YORbdSk_gYrgnZ5ddKSEgYn44mAmYTk5ciEE"
-    GuildID = "1052167237106159676"
-)
 
 // Data structure
 type InsightData struct {
@@ -56,29 +51,27 @@ func handler() {
 }
 
 func getSortedDiscordData() []DiscordWorkTime {
-    discordIDs, err := getUniqueDiscordIDs()
+    discordIDMap, err := getUniqueDiscordIDs()
     if err != nil {
         log.Fatalf("Failed to get unique Discord IDs: %s", err)
         return nil
     }
 
     var data []DiscordWorkTime
-    for _, discordID := range discordIDs {
-        items, err := getDiscordIDAndTimes(discordID)
+    for discordID, _ := range discordIDMap {
+        times, languages, err := getDiscordIDAndTimes(discordID)
         if err != nil {
             log.Printf("Failed to get data for Discord ID: %s", discordID)
             continue
         }
 
-        if len(items) > 0 {
-            times := extractTimesFromItems(items)
-            sessionTimes := calculateSessionTimes(times)
+        if len(times) > 0 {
+            sessionTimes, languageDurations := calculateSessionTimes(times, languages)
             totalWorkTime := getTotalWorkTime(sessionTimes)
-            languageTimes := calculateLanguageTimes(items)
             data = append(data, DiscordWorkTime{
                 DiscordID:    discordID,
                 TotalTime:    totalWorkTime,
-                LanguageTimes: languageTimes,
+                LanguageTimes: languageDurations,
             })
         }
     }
@@ -90,48 +83,26 @@ func getSortedDiscordData() []DiscordWorkTime {
     return data
 }
 
-func getUniqueDiscordIDs() ([]string, error) {
+func getUniqueDiscordIDs() (map[string]string, error) {
     now := time.Now().UTC()
     sevenDaysAgo := now.AddDate(0, 0, -7)
+    startDate := time.Date(
+        sevenDaysAgo.Year(),
+        sevenDaysAgo.Month(),
+        sevenDaysAgo.Day(),
+        0, 0, 0, 0,
+        sevenDaysAgo.Location(),
+    )
+
+    filt := expression.Name("timestamp").GreaterThanEqual(expression.Value(startDate.Format(time.RFC3339)))
+    expr, err := expression.NewBuilder().WithFilter(filt).Build()
+    if err != nil {
+        return nil, err
+    }
+
     result, err := svc.Scan(&dynamodb.ScanInput{
-        TableName: aws.String(tableName),
-    })
-    if err != nil {
-        return nil, err
-    }
-
-    var items []InsightData
-    err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &items)
-    if err != nil {
-        return nil, err
-    }
-
-    uniqueDiscordIDs := map[string]bool{}
-    for _, item := range items {
-        timestamp, _ := time.Parse(time.RFC3339, item.Timestamp)
-        if timestamp.After(sevenDaysAgo) {
-            uniqueDiscordIDs[item.DiscordID] = true
-        }
-    }
-
-    var discordIDs []string
-    for id := range uniqueDiscordIDs {
-        discordIDs = append(discordIDs, id)
-    }
-
-    return discordIDs, nil
-}
-
-func getDiscordIDAndTimes(discordID string) ([]InsightData, error) {
-    filt := expression.Key("discord_id").Equal(expression.Value(discordID))
-    expr, err := expression.NewBuilder().WithKeyCondition(filt).Build()
-    if err != nil {
-        return nil, err
-    }
-
-    result, err := svc.Query(&dynamodb.QueryInput{
         TableName:                 aws.String(tableName),
-        KeyConditionExpression:    expr.KeyCondition(),
+        FilterExpression:          expr.Filter(),
         ExpressionAttributeNames:  expr.Names(),
         ExpressionAttributeValues: expr.Values(),
     })
@@ -145,52 +116,107 @@ func getDiscordIDAndTimes(discordID string) ([]InsightData, error) {
         return nil, err
     }
 
-    return items, nil
+    uniqueDiscordIDs := make(map[string]string)
+    for _, item := range items {
+        uniqueDiscordIDs[item.DiscordID] = item.DiscordID
+    }
+
+    return uniqueDiscordIDs, nil
 }
 
-func extractTimesFromItems(items []InsightData) []time.Time {
+func getDiscordIDAndTimes(discordID string) ([]time.Time, []string, error) {
+    now := time.Now().UTC()
+    sevenDaysAgo := now.AddDate(0, 0, -7)
+    startDate := time.Date(
+        sevenDaysAgo.Year(),
+        sevenDaysAgo.Month(),
+        sevenDaysAgo.Day(),
+        0, 0, 0, 0,
+        sevenDaysAgo.Location(),
+    )
+
+    keyCond := expression.Key("discord_id").Equal(expression.Value(discordID)).
+        And(expression.Key("timestamp").GreaterThanEqual(expression.Value(startDate.Format(time.RFC3339))))
+
+    builder := expression.NewBuilder().WithKeyCondition(keyCond)
+    expr, err := builder.Build()
+    if err != nil {
+        return nil, nil, err
+    }
+
+    result, err := svc.Query(&dynamodb.QueryInput{
+        TableName:                 aws.String(tableName),
+        KeyConditionExpression:    expr.KeyCondition(),
+        ExpressionAttributeNames:  expr.Names(),
+        ExpressionAttributeValues: expr.Values(),
+    })
+    if err != nil {
+        return nil, nil, err
+    }
+
+    var items []InsightData
+    err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &items)
+    if err != nil {
+        return nil, nil, err
+    }
+
     var times []time.Time
+    var languages []string
     for _, item := range items {
         t, err := time.Parse(time.RFC3339, item.Timestamp)
         if err != nil {
-            log.Fatalf("Failed to parse timestamp: %s", err)
+            log.Printf("Failed to parse timestamp: %v", err)
+            continue
         }
         times = append(times, t)
+        languages = append(languages, item.Language)
     }
-    return times
+
+    sort.Slice(times, func(i, j int) bool {
+        return times[i].Before(times[j])
+    })
+
+    return times, languages, nil
 }
 
-func calculateSessionTimes(times []time.Time) []struct {
+func calculateSessionTimes(times []time.Time, languages []string) ([]struct {
     Start time.Time
     End   time.Time
-} {
+}, map[string]time.Duration) {
     var sessionTimes []struct {
         Start time.Time
         End   time.Time
     }
+    languageDurations := make(map[string]time.Duration)
 
     if len(times) == 0 {
-        return sessionTimes
+        return sessionTimes, languageDurations
     }
 
     sessionStart := times[0]
     sessionEnd := times[0]
+    currentLanguage := languages[0]
+
     for i := 1; i < len(times); i++ {
         if times[i].Sub(sessionEnd) > 5*time.Minute {
             sessionTimes = append(sessionTimes, struct {
                 Start time.Time
                 End   time.Time
             }{Start: sessionStart, End: sessionEnd})
+            languageDurations[currentLanguage] += sessionEnd.Sub(sessionStart)
             sessionStart = times[i]
+            currentLanguage = languages[i]
         }
         sessionEnd = times[i]
     }
+
     sessionTimes = append(sessionTimes, struct {
         Start time.Time
         End   time.Time
     }{Start: sessionStart, End: sessionEnd})
+    languageDurations[currentLanguage] += sessionEnd.Sub(sessionStart)
 
-    return sessionTimes
+    return sessionTimes, languageDurations
 }
 
 func getTotalWorkTime(sessionTimes []struct {
@@ -204,33 +230,6 @@ func getTotalWorkTime(sessionTimes []struct {
     return totalTime
 }
 
-func calculateLanguageTimes(items []InsightData) map[string]time.Duration {
-    languageTimes := make(map[string]time.Duration)
-    sort.Slice(items, func(i, j int) bool {
-        return items[i].Timestamp < items[j].Timestamp
-    })
-
-    var sessionStart time.Time
-    for i, item := range items {
-        timestamp, err := time.Parse(time.RFC3339, item.Timestamp)
-        if err != nil {
-            log.Fatalf("Failed to parse timestamp: %s", err)
-        }
-
-        if i == 0 || timestamp.Sub(sessionStart) > 5*time.Minute {
-            sessionStart = timestamp
-        }
-
-        if i == len(items)-1 || items[i+1].Language != item.Language {
-            sessionEnd := timestamp
-            duration := sessionEnd.Sub(sessionStart)
-            languageTimes[item.Language] += duration
-        }
-    }
-
-    return languageTimes
-}
-
 // Prefix to identify roles created by the bot
 const rolePrefix = ""
 const roleSuffix = "勉強中🔥"
@@ -239,7 +238,14 @@ const roleSuffix = "勉強中🔥"
 var excludedLanguages = []string{"json", "markdown"} // Replace with actual languages to exclude
 
 func assignRoles(sortedData []DiscordWorkTime) error {
-    dg, err := discordgo.New("Bot " + Token)
+    discordToken := os.Getenv("DISCORD_TOKEN")
+    guildID := os.Getenv("DISCORD_GUILD_ID")
+
+    if discordToken == "" || guildID == "" {
+        return fmt.Errorf("DISCORD_TOKEN or DISCORD_GUILD_ID environment variable is not set")
+    }
+
+    dg, err := discordgo.New("Bot " + discordToken)
     if err != nil {
         return fmt.Errorf("error creating Discord session: %w", err)
     }
@@ -251,7 +257,7 @@ func assignRoles(sortedData []DiscordWorkTime) error {
     }
 
     // Delete existing roles created by the bot
-    err = deleteBotCreatedRoles(dg)
+    err = deleteBotCreatedRoles(dg, guildID)
     if err != nil {
         log.Printf("Failed to delete existing roles: %v", err)
     }
@@ -262,12 +268,12 @@ func assignRoles(sortedData []DiscordWorkTime) error {
                 continue
             }
             if duration > 60*time.Minute {
-                roleID, err := ensureRoleExists(dg, language)
+                roleID, err := ensureRoleExists(dg, guildID, language)
                 if err != nil {
                     log.Printf("Failed to ensure role exists: %v", err)
                     continue
                 }
-                err = dg.GuildMemberRoleAdd(GuildID, entry.DiscordID, roleID)
+                err = dg.GuildMemberRoleAdd(guildID, entry.DiscordID, roleID)
                 if err != nil {
                     log.Printf("Failed to assign role: %v", err)
                 }
@@ -289,8 +295,8 @@ func isExcludedLanguage(language string) bool {
 }
 
 // Ensure the role exists, creating it if necessary
-func ensureRoleExists(dg *discordgo.Session, language string) (string, error) {
-    roles, err := dg.GuildRoles(GuildID)
+func ensureRoleExists(dg *discordgo.Session, guildID, language string) (string, error) {
+    roles, err := dg.GuildRoles(guildID)
     if err != nil {
         return "", fmt.Errorf("failed to get roles: %w", err)
     }
@@ -309,7 +315,7 @@ func ensureRoleExists(dg *discordgo.Session, language string) (string, error) {
         Color: &blueColor,
     }
 
-    role, err := dg.GuildRoleCreate(GuildID, roleParams)
+    role, err := dg.GuildRoleCreate(guildID, roleParams)
     if err != nil {
         return "", fmt.Errorf("failed to create role: %w", err)
     }
@@ -318,15 +324,15 @@ func ensureRoleExists(dg *discordgo.Session, language string) (string, error) {
 }
 
 // Delete roles created by the bot
-func deleteBotCreatedRoles(dg *discordgo.Session) error {
-    roles, err := dg.GuildRoles(GuildID)
+func deleteBotCreatedRoles(dg *discordgo.Session, guildID string) error {
+    roles, err := dg.GuildRoles(guildID)
     if err != nil {
         return fmt.Errorf("failed to get roles: %w", err)
     }
 
     for _, role := range roles {
         if len(role.Name) > len(rolePrefix)+len(roleSuffix) && role.Name[:len(rolePrefix)] == rolePrefix && role.Name[len(role.Name)-len(roleSuffix):] == roleSuffix {
-            err = dg.GuildRoleDelete(GuildID, role.ID)
+            err = dg.GuildRoleDelete(guildID, role.ID)
             if err != nil {
                 log.Printf("Failed to delete role: %v", err)
             }

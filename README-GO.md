@@ -23,8 +23,9 @@ go mod download
 go mod tidy
 
 ```
-GOOS=linux GOARCH=amd64 go build -o bootstrap ver7.go \
-&& zip function.zip bootstrap
+GOOS=linux GOARCH=amd64 go build -o bootstrap ver.go \
+&& zip function.zip bootstrap \
+&& rm bootstrap
 ```
 
 * もしbootstrapという名前にしないと、lambdaが認識してくれないので注意が必要。
