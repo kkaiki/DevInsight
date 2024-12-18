@@ -44,6 +44,7 @@ type InsightData struct {
 
 type DiscordWorkTime struct {
     DiscordID string
+    DiscordUniqueID string
     TotalTime time.Duration
     Languages map[string]time.Duration
 }
@@ -324,7 +325,7 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, []string, error) {
     return times, languages, nil
 }
 
-func getUniqueDiscordIDs() ([]string, error) {
+func getUniqueDiscordIDs() (map[string]string, error) {
     // 現在時刻（UTC）
     now := time.Now().UTC()
     
@@ -366,7 +367,7 @@ func getUniqueDiscordIDs() ([]string, error) {
 
     // 結果をアンマーシャル
     var items []InsightData
-    uniqueDiscordIDs := map[string]bool{}
+    uniqueDiscordIDs := make(map[string]string)
     
     if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, &items); err != nil {
         return nil, &AppError{
@@ -378,34 +379,29 @@ func getUniqueDiscordIDs() ([]string, error) {
 
     // ユニークなDiscord IDを収集
     for _, item := range items {
-        uniqueDiscordIDs[item.DiscordID] = true
+        uniqueDiscordIDs[item.DiscordID] = item.DiscordID // DiscordUniqueIDとして設定
     }
 
-    var discordIDs []string
-    for id := range uniqueDiscordIDs {
-        discordIDs = append(discordIDs, id)
-    }
-
-    return discordIDs, nil
+    return uniqueDiscordIDs, nil
 }
 
 func getSortedDiscordData() []DiscordWorkTime {
     // 1. Discord IDの取得
-    discordIDs, err := getUniqueDiscordIDs()
+    discordIDMap, err := getUniqueDiscordIDs()
     if err != nil {
         log.Printf("[エラー] Discord IDの取得に失敗: %v", err)
         return nil
     }
-    log.Printf("[情報] 取得したDiscord ID数: %d", len(discordIDs))
+    log.Printf("[情報] 取得したDiscord ID数: %d", len(discordIDMap))
 
-    if len(discordIDs) == 0 {
+    if len(discordIDMap) == 0 {
         log.Printf("[警告] 対象期間内のデータが見つかりません")
         return nil
     }
 
     // 2. 各ユーザーの言語ごとの時間データ取得
     var data []DiscordWorkTime
-    for _, discordID := range discordIDs {
+    for discordID, discordUniqueID := range discordIDMap {
         times, languages, err := getDiscordIDAndTimes(discordID)
         if err != nil {
             log.Printf("[エラー] 言語データの取得失敗 (ID: %s): %v", discordID, err)
@@ -417,9 +413,10 @@ func getSortedDiscordData() []DiscordWorkTime {
             sessionTimes, languageDurations := calculateSessionTimes(times, languages)
             totalWorkTime := getTotalWorkTime(sessionTimes)
             data = append(data, DiscordWorkTime{
-                DiscordID: discordID,
-                TotalTime: totalWorkTime,
-                Languages: languageDurations,
+                DiscordID:       discordID,
+                DiscordUniqueID: discordUniqueID,
+                TotalTime:       totalWorkTime,
+                Languages:       languageDurations,
             })
             log.Printf("[情報] ユーザー %s の合計作業時間: %v", discordID, totalWorkTime)
         }
