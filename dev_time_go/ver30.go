@@ -93,21 +93,36 @@ func logError(err error) {
 
 // Discord Unique IDからユーザーの表示名を取得する関数
 func getDisplayName(dg *discordgo.Session, guildID, discordUniqueID string) (string, error) {
-	member, err := dg.GuildMember(guildID, discordUniqueID)
-	if err != nil {
-		log.Printf("[エラー] ユーザー情報の取得に失敗 (DiscordUniqueID: %s): %v", discordUniqueID, err)
-		return "", &AppError{
-			Type:    "DiscordError",
-			Message: "ユーザー情報の取得に失敗",
-			Err:     err,
-		}
-	}
-	displayName := member.Nick
-	if displayName == "" {
-		displayName = member.User.Username
-	}
-	log.Printf("[デバッグ] ユーザー情報の取得に成功 (DiscordUniqueID: %s, DisplayName: %s)", discordUniqueID, displayName)
-	return displayName, nil
+    if dg == nil {
+        return "", &AppError{
+            Type:    "InvalidSession",
+            Message: "Discordセッションが無効です",
+        }
+    }
+
+    if guildID == "" || discordUniqueID == "" {
+        return "", &AppError{
+            Type:    "InvalidInput",
+            Message: "guildIDまたはdiscordUniqueIDが無効です",
+        }
+    }
+
+    member, err := dg.GuildMember(guildID, discordUniqueID)
+    if err != nil {
+        log.Printf("[エラー] ユーザー情報の取得に失敗 (DiscordUniqueID: %s): %v", discordUniqueID, err)
+        return "", &AppError{
+            Type:    "DiscordError",
+            Message: "ユーザー情報の取得に失敗",
+            Err:     err,
+        }
+    }
+
+    displayName := member.Nick
+    if displayName == "" {
+        displayName = member.User.Username
+    }
+    log.Printf("[デバッグ] ユーザー情報の取得に成功 (DiscordUniqueID: %s, DisplayName: %s)", discordUniqueID, displayName)
+    return displayName, nil
 }
 
 func formatMessage(dg *discordgo.Session, guildID string, data []DiscordWorkTime) string {
