@@ -95,13 +95,14 @@ func logError(err error) {
 func getUsername(dg *discordgo.Session, discordUniqueID string) (string, error) {
     user, err := dg.User(discordUniqueID)
     if err != nil {
-        log.Printf("[エラー] ユーザー情報の取得に失敗 (ID: %s): %v", discordUniqueID, err)
+        log.Printf("[エラー] ユーザー情報の取得に失敗 (DiscordUniqueID: %s): %v", discordUniqueID, err)
         return "", &AppError{
             Type:    "DiscordError",
             Message: "ユーザー情報の取得に失敗",
             Err:     err,
         }
     }
+    log.Printf("[デバッグ] ユーザー情報の取得に成功 (DiscordUniqueID: %s, Username: %s)", discordUniqueID, user.Username)
     return user.Username, nil
 }
 
@@ -287,8 +288,6 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, []string, error) {
         }
     }
 
-    log.Printf("[デバッグ] クエリ結果: %v", result)
-
     var items []InsightData
     if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, &items); err != nil {
         return nil, nil, &AppError{
@@ -301,7 +300,6 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, []string, error) {
     var times []time.Time
     var languages []string
     languageMapping := getLanguageMapping() // 言語のマッピングを取得
-    log.Printf("[デバッグ] 言語マッピング: %v", languageMapping)
     for _, item := range items {
         t, err := time.Parse(time.RFC3339, item.Timestamp)
         if err != nil {
