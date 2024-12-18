@@ -178,6 +178,8 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
         sevenDaysAgo.Location(),
     )
 
+    log.Printf("[デバッグ] データ取得期間: %s - %s まで", startDate.Format(time.RFC3339), now.Format(time.RFC3339))
+
     // フィルター条件を組み立て
     keyCond := expression.Key("discord_id").Equal(expression.Value(discordID))
     timeCond := expression.Name("timestamp").GreaterThanEqual(expression.Value(startDate.Format(time.RFC3339)))
