@@ -94,10 +94,13 @@ func logError(err error) {
 func getUsername(dg *discordgo.Session, discordID string) (string, error) {
     user, err := dg.User(discordID)
     if err != nil {
-        return "", &AppError{
-            Type:    "DiscordError",
-            Message: "ユーザー情報の取得に失敗",
-            Err:     err,
+        user, err = dg.User(discordID)
+        if err != nil {
+            return "", &AppError{
+                Type:    "DiscordError",
+                Message: "ユーザー情報の取得に失敗",
+                Err:     err,
+            }
         }
     }
     return user.Username, nil
