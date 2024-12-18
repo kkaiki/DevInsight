@@ -280,9 +280,9 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, []string, error) {
 
     var times []time.Time
     var languages []string
-    languageMapping := getLanguageMapping()
+    languageMapping := getLanguageMapping() // 言語のマッピングを取得
+    log.Printf("[デバッグ] 言語マッピング: %v", languageMapping)
     for _, item := range items {
-        log.Printf("[デバッグ] 解析対象タイムスタンプ: %s", item.Timestamp)
         t, err := time.Parse(time.RFC3339, item.Timestamp)
         if err != nil {
             log.Printf("[エラー] タイムスタンプの解析に失敗: %v", err)
@@ -291,7 +291,7 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, []string, error) {
         times = append(times, t)
         language := item.Language
         if mappedLanguage, ok := languageMapping[language]; ok {
-            language = mappedLanguage
+            language = mappedLanguage // 言語のマッピングを適用
         }
         languages = append(languages, language)
     }
