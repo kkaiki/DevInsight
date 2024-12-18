@@ -115,13 +115,25 @@ func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
             continue
         }
 
+        var rankPrefix string
+        switch i {
+        case 0:
+            rankPrefix = "🥇 **1位:** "
+        case 1:
+            rankPrefix = "🥈 **2位:** "
+        case 2:
+            rankPrefix = "🥉 **3位:** "
+        default:
+            rankPrefix = fmt.Sprintf("%d位: ", i+1)
+        }
+
         displayName := fmt.Sprintf("<@%s>", entry.DiscordUniqueID)
 
         hours := int(entry.TotalTime.Hours())
         minutes := int(entry.TotalTime.Minutes()) % 60
         
-        message += fmt.Sprintf("%d位: %s %d時間%d分\n",
-            i+1,
+        message += fmt.Sprintf("%s%s %d時間%d分\n",
+            rankPrefix,
             displayName,
             hours,
             minutes,
@@ -140,7 +152,7 @@ func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
     }
     
     message += "========================\n"
-    message += "[\n\nダウンロード先url](https://marketplace.visualstudio.com/items?itemName=DevInsights.vscode-DevInsights)\n"
+    message += "[\n\nダウンロード](https://marketplace.visualstudio.com/items?itemName=DevInsights.vscode-DevInsights)\n"
     return message
 }
 func handleRequest(ctx context.Context) error {
