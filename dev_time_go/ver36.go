@@ -118,11 +118,11 @@ func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
         var rankPrefix string
         switch i {
         case 0:
-            rankPrefix = "🥇 **1位:** "
+            rankPrefix = "# 🥇 **1位:** "
         case 1:
-            rankPrefix = "🥈 **2位:** "
+            rankPrefix = "## 🥈 **2位:** "
         case 2:
-            rankPrefix = "🥉 **3位:** "
+            rankPrefix = "### 🥉 **3位:** "
         default:
             rankPrefix = fmt.Sprintf("%d位: ", i+1)
         }
