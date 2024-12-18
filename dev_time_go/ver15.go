@@ -38,6 +38,7 @@ var (
 type InsightData struct {
     DiscordID string `json:"discord_id"`
     Timestamp string `json:"timestamp"`
+    Language  string `json:"language"`
 }
 
 type DiscordWorkTime struct {
@@ -65,7 +66,6 @@ func validateEnv() error {
     }
     return nil
 }
-
 
 // エラーログの強化
 func logError(err error) {
@@ -194,7 +194,7 @@ func sendDiscordMessage(dg *discordgo.Session, channelID, message string) error 
     return nil
 }
 
-func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
+func getDiscordIDAndTimes(discordID string) ([]time.Time, map[string]time.Duration, error) {
     // 7日前の日付を計算
     now := time.Now().UTC()
     sevenDaysAgo := now.AddDate(0, 0, -7)
@@ -216,7 +216,7 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
     builder := expression.NewBuilder().WithKeyCondition(keyCond)
     expr, err := builder.Build()
     if (err != nil) {
-        return nil, &AppError{
+        return nil, nil, &AppError{
             Type:    "DynamoDBError",
             Message: "クエリ式の構築に失敗",
             Err:     err,
@@ -232,7 +232,7 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
     })
 
     if err != nil {
-        return nil, &AppError{
+        return nil, nil, &AppError{
             Type:    "DynamoDBError",
             Message: "クエリの実行に失敗",
             Err:     err,
@@ -243,7 +243,7 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
 
     var items []InsightData
     if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, &items); err != nil {
-        return nil, &AppError{
+        return nil, nil, &AppError{
             Type:    "DataError",
             Message: "データのアンマーシャルに失敗",
             Err:     err,
@@ -251,6 +251,7 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
     }
 
     var times []time.Time
+    languageTimes := make(map[string]time.Duration)
     for _, item := range items {
         log.Printf("[デバッグ] 解析対象タイムスタンプ: %s", item.Timestamp)
         t, err := time.Parse(time.RFC3339, item.Timestamp)
@@ -259,13 +260,18 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
             continue
         }
         times = append(times, t)
+        // 言語データの解析
+        if item.Language != "" {
+            duration := languageTimes[item.Language]
+            languageTimes[item.Language] = duration + time.Minute // 仮定: 1分単位で加算
+        }
     }
 
     sort.Slice(times, func(i, j int) bool {
         return times[i].Before(times[j])
     })
 
-    return times, nil
+    return times, languageTimes, nil
 }
 
 func getUniqueDiscordIDs() ([]string, error) {
@@ -333,7 +339,6 @@ func getUniqueDiscordIDs() ([]string, error) {
     return discordIDs, nil
 }
 
-
 func getSortedDiscordData() []DiscordWorkTime {
     // 1. Discord IDの取得
     discordIDs, err := getUniqueDiscordIDs()
@@ -351,7 +356,7 @@ func getSortedDiscordData() []DiscordWorkTime {
     // 2. 各ユーザーの時間データ取得
     var data []DiscordWorkTime
     for _, discordID := range discordIDs {
-        times, err := getDiscordIDAndTimes(discordID)
+        times, languages, err := getDiscordIDAndTimes(discordID)
         if err != nil {
             log.Printf("[エラー] 時間データの取得失敗 (ID: %s): %v", discordID, err)
             continue
@@ -364,6 +369,7 @@ func getSortedDiscordData() []DiscordWorkTime {
             data = append(data, DiscordWorkTime{
                 DiscordID: discordID,
                 TotalTime: totalWorkTime,
+                Languages: languages,
             })
             log.Printf("[情報] ユーザー %s の合計作業時間: %v", discordID, totalWorkTime)
         }
@@ -383,46 +389,46 @@ func getSortedDiscordData() []DiscordWorkTime {
 }
 
 func calculateSessionTimes(times []time.Time) []struct {
-	Start time.Time
-	End   time.Time
+    Start time.Time
+    End   time.Time
 } {
-	var sessionTimes []struct {
-		Start time.Time
-		End   time.Time
-	}
+    var sessionTimes []struct {
+        Start time.Time
+        End   time.Time
+    }
 
-	sessionStart := times[0]
-	sessionEnd := times[0]
+    sessionStart := times[0]
+    sessionEnd := times[0]
 
-	for i := 1; i < len(times); i++ {
-		if times[i].Sub(sessionEnd) > 5*time.Minute {
-			sessionTimes = append(sessionTimes, struct {
-				Start time.Time
-				End   time.Time
-			}{Start: sessionStart, End: sessionEnd})
-			sessionStart = times[i]
-		}
-		sessionEnd = times[i]
-	}
+    for i := 1; i < len(times); i++ {
+        if times[i].Sub(sessionEnd) > 5*time.Minute {
+            sessionTimes = append(sessionTimes, struct {
+                Start time.Time
+                End   time.Time
+            }{Start: sessionStart, End: sessionEnd})
+            sessionStart = times[i]
+        }
+        sessionEnd = times[i]
+    }
 
-	sessionTimes = append(sessionTimes, struct {
-		Start time.Time
-		End   time.Time
-	}{Start: sessionStart, End: sessionEnd})
+    sessionTimes = append(sessionTimes, struct {
+        Start time.Time
+        End   time.Time
+    }{Start: sessionStart, End: sessionEnd})
 
-	return sessionTimes
+    return sessionTimes
 }
 
 // セッションタイムの総合時間を計算する関数
 func getTotalWorkTime(sessionTimes []struct {
-	Start time.Time
-	End   time.Time
+    Start time.Time
+    End   time.Time
 }) time.Duration {
-	var totalTime time.Duration
-	for _, session := range sessionTimes {
-		totalTime += session.End.Sub(session.Start)
-	}
-	return totalTime
+    var totalTime time.Duration
+    for _, session := range sessionTimes {
+        totalTime += session.End.Sub(session.Start)
+    }
+    return totalTime
 }
 
 func main() {
