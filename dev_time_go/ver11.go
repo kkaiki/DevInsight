@@ -181,13 +181,13 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
     log.Printf("[デバッグ] データ取得期間: %s - %s まで", startDate.Format(time.RFC3339), now.Format(time.RFC3339))
 
     // フィルター条件を組み立て
-    keyCond := expression.Key("discord_id").Equal(expression.Value(discordID))
-    timeCond := expression.Name("timestamp").GreaterThanEqual(expression.Value(startDate.Format(time.RFC3339)))
+    keyCond := expression.Key("discord_id").Equal(expression.Value(discordID)).
+        And(expression.Key("timestamp").GreaterThanEqual(expression.Value(startDate.Format(time.RFC3339))))
     
     // 複合条件を作成
-    builder := expression.NewBuilder().WithKeyCondition(keyCond).WithFilter(timeCond)
+    builder := expression.NewBuilder().WithKeyCondition(keyCond)
     expr, err := builder.Build()
-    if err != nil {
+    if (err != nil) {
         return nil, &AppError{
             Type:    "DynamoDBError",
             Message: "クエリ式の構築に失敗",
@@ -199,7 +199,6 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
     result, err := svc.Query(&dynamodb.QueryInput{
         TableName:                 aws.String(tableName),
         KeyConditionExpression:    expr.KeyCondition(),
-        FilterExpression:         expr.Filter(),
         ExpressionAttributeNames:  expr.Names(),
         ExpressionAttributeValues: expr.Values(),
     })
