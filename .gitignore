@@ -9,8 +9,7 @@ npm-debug.log*
 .DS_Store
 wakatime-master
 tags
-*.zip
+ver*.zip
 DevInsight
-function.zip
 bootstrap
 go.mod
