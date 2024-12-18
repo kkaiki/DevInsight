@@ -90,7 +90,70 @@ func logError(err error) {
     }
 }
 
-// handleRequestにエラーログを追加
+// Discord IDからユーザー名を取得する関数
+func getUsername(dg *discordgo.Session, discordID string) (string, error) {
+    user, err := dg.User(discordID)
+    if err != nil {
+        return "", &AppError{
+            Type:    "DiscordError",
+            Message: "ユーザー情報の取得に失敗",
+            Err:     err,
+        }
+    }
+    return user.Username, nil
+}
+
+func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
+    if len(data) == 0 {
+        return "データがありません。"
+    }
+    
+    now := time.Now().UTC()
+    sevenDaysAgo := now.AddDate(0, 0, -7)
+    startDate := time.Date(
+        sevenDaysAgo.Year(),
+        sevenDaysAgo.Month(),
+        sevenDaysAgo.Day(),
+        0, 0, 0, 0,
+        sevenDaysAgo.Location(),
+    )
+    
+    message := fmt.Sprintf("作業時間ランキング (%s から)\n", startDate.Format("2006/01/02"))
+    message += "========================\n"
+    
+    for i, entry := range data {
+        username, err := getUsername(dg, entry.DiscordID)
+        if err != nil {
+            logError(err)
+            username = entry.DiscordID // エラーが発生した場合はIDを使用
+        }
+
+        hours := int(entry.TotalTime.Hours())
+        minutes := int(entry.TotalTime.Minutes()) % 60
+        
+        message += fmt.Sprintf("%d位: %s %d時間%d分\n",
+            i+1,
+            username,
+            hours,
+            minutes,
+        )
+        
+        // トップ3の言語とその使用時間を追加
+        sortedLanguages := sortLanguagesByTime(entry.Languages)
+        for j, lang := range sortedLanguages {
+            if j >= 3 {
+                break
+            }
+            langHours := int(lang.Time.Hours())
+            langMinutes := int(lang.Time.Minutes()) % 60
+            message += fmt.Sprintf("  - %s: %d時間%d分\n", lang.Name, langHours, langMinutes)
+        }
+    }
+    
+    message += "========================\n"
+    return message
+}
+
 func handleRequest(ctx context.Context) error {
     if err := validateEnv(); err != nil {
         logError(err)
@@ -127,57 +190,12 @@ func handleRequest(ctx context.Context) error {
         }
     }
 
-    message := formatMessage(sortedData)
+    message := formatMessage(dg, sortedData)
     if err := sendDiscordMessage(dg, channelID, message); err != nil {
         return err
     }
 
     return nil
-}
-
-func formatMessage(data []DiscordWorkTime) string {
-    if len(data) == 0 {
-        return "データがありません。"
-    }
-    
-    now := time.Now().UTC()
-    sevenDaysAgo := now.AddDate(0, 0, -7)
-    startDate := time.Date(
-        sevenDaysAgo.Year(),
-        sevenDaysAgo.Month(),
-        sevenDaysAgo.Day(),
-        0, 0, 0, 0,
-        sevenDaysAgo.Location(),
-    )
-    
-    message := fmt.Sprintf("作業時間ランキング (%s から)\n", startDate.Format("2006/01/02"))
-    message += "========================\n"
-    
-    for i, entry := range data {
-        hours := int(entry.TotalTime.Hours())
-        minutes := int(entry.TotalTime.Minutes()) % 60
-        
-        message += fmt.Sprintf("%d位: <@%s> %d時間%d分\n",
-            i+1,
-            entry.DiscordID,
-            hours,
-            minutes,
-        )
-        
-        // トップ3の言語とその使用時間を追加
-        sortedLanguages := sortLanguagesByTime(entry.Languages)
-        for j, lang := range sortedLanguages {
-            if j >= 3 {
-                break
-            }
-            langHours := int(lang.Time.Hours())
-            langMinutes := int(lang.Time.Minutes()) % 60
-            message += fmt.Sprintf("  - %s: %d時間%d分\n", lang.Name, langHours, langMinutes)
-        }
-    }
-    
-    message += "========================\n"
-    return message
 }
 
 type LanguageTime struct {
