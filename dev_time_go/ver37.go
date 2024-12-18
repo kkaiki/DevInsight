@@ -118,13 +118,13 @@ func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
         var rankPrefix string
         switch i {
         case 0:
-            rankPrefix = "# 🥇 **1位:** "
+            rankPrefix = "# 🥇 "
         case 1:
-            rankPrefix = "## 🥈 **2位:** "
+            rankPrefix = "## 🥈 "
         case 2:
-            rankPrefix = "### 🥉 **3位:** "
+            rankPrefix = "### 🥉 "
         default:
-            rankPrefix = fmt.Sprintf("%d位: ", i+1)
+            rankPrefix = ""
         }
 
         displayName := fmt.Sprintf("<@%s>", entry.DiscordUniqueID)
@@ -155,6 +155,7 @@ func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
     message += "[\n\nダウンロード](https://marketplace.visualstudio.com/items?itemName=DevInsights.vscode-DevInsights)\n"
     return message
 }
+
 func handleRequest(ctx context.Context) error {
     if err := validateEnv(); err != nil {
         logError(err)
