@@ -91,17 +91,13 @@ func logError(err error) {
     }
 }
 
-// Discord IDからユーザー名を取得する関数
-func getUsername(dg *discordgo.Session, discordID string) (string, error) {
-    user, err := dg.User(discordID)
+func getUsername(dg *discordgo.Session, discordUniqueID string) (string, error) {
+    user, err := dg.User(discordUniqueID)
     if err != nil {
-        user, err = dg.User(discordID)
-        if err != nil {
-            return "", &AppError{
-                Type:    "DiscordError",
-                Message: "ユーザー情報の取得に失敗",
-                Err:     err,
-            }
+        return "", &AppError{
+            Type:    "DiscordError",
+            Message: "ユーザー情報の取得に失敗",
+            Err:     err,
         }
     }
     return user.Username, nil
@@ -126,10 +122,10 @@ func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
     message += "========================\n"
     
     for i, entry := range data {
-        username, err := getUsername(dg, entry.DiscordID)
+        username, err := getUsername(dg, entry.DiscordUniqueID)
         if err != nil {
             logError(err)
-            username = entry.DiscordID // エラーが発生した場合はIDを使用
+            username = entry.DiscordID // エラーが発生した場合はDiscordIDを使用
         }
 
         hours := int(entry.TotalTime.Hours())
