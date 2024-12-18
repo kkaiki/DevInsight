@@ -43,6 +43,7 @@ type InsightData struct {
 type DiscordWorkTime struct {
     DiscordID string
     TotalTime time.Duration
+    Languages map[string]time.Duration
 }
 
 // 環境変数の検証
@@ -148,10 +149,37 @@ func formatMessage(data []DiscordWorkTime) string {
             hours,
             minutes,
         )
+        
+        // トップ3の言語とその使用時間を追加
+        sortedLanguages := sortLanguagesByTime(entry.Languages)
+        for j, lang := range sortedLanguages {
+            if j >= 3 {
+                break
+            }
+            langHours := int(lang.Time.Hours())
+            langMinutes := int(lang.Time.Minutes()) % 60
+            message += fmt.Sprintf("  - %s: %d時間%d分\n", lang.Name, langHours, langMinutes)
+        }
     }
     
     message += "========================\n"
     return message
+}
+
+type LanguageTime struct {
+    Name string
+    Time time.Duration
+}
+
+func sortLanguagesByTime(languages map[string]time.Duration) []LanguageTime {
+    var langTimes []LanguageTime
+    for name, time := range languages {
+        langTimes = append(langTimes, LanguageTime{Name: name, Time: time})
+    }
+    sort.Slice(langTimes, func(i, j int) bool {
+        return langTimes[i].Time > langTimes[j].Time
+    })
+    return langTimes
 }
 
 func sendDiscordMessage(dg *discordgo.Session, channelID, message string) error {
@@ -345,6 +373,11 @@ func getSortedDiscordData() []DiscordWorkTime {
         log.Printf("[警告] 集計可能なデータが見つかりません")
         return nil
     }
+
+    // 作業時間でソート
+    sort.Slice(data, func(i, j int) bool {
+        return data[i].TotalTime > data[j].TotalTime
+    })
 
     return data
 }
