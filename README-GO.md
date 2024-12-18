@@ -15,8 +15,15 @@ go get github.com/bwmarrin/discordgo
 ## how to make zip file
 何をインポートすればいいかはAIに聞いてください
 
+または、
+依存関係の自動インストール
+go mod download
+
+または
+go mod tidy
+
 ```
-GOOS=linux GOARCH=amd64 go build -o bootstrap ver3.go \
+GOOS=linux GOARCH=amd64 go build -o bootstrap ver7.go \
 && zip function.zip bootstrap
 ```
 

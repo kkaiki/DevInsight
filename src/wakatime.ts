@@ -4,7 +4,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
-require('dotenv').config();
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
 
 import { LogLevel } from './constants';
 import { Options, Setting } from './options';
@@ -15,11 +18,19 @@ import { Logger } from './logger';
 import { Utils } from './utils';
 
 // awsの認証情報を設定
+const accessKeyId = process.env.AWS_ACCESS_KEY_ID || 'AKIAUBU2KERJLSUQHJCV';
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || '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';
+
+if (!accessKeyId || !secretAccessKey) {
+  vscode.window.showErrorMessage('AWS認証情報が設定されていません。環境変数を確認してください。');
+}
+
+// awsの認証情報を設定
 const client = new DynamoDBClient({
-  region: "ap-northeast-1", // 東京リージョン
+  region: "ap-northeast-1", // 東京
   credentials: {
-    accessKeyId: "AKIAUBU2KERJLSUQHJCV",
-    secretAccessKey: "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",
+    accessKeyId,
+    secretAccessKey,
   },
 });
 
