@@ -3,58 +3,92 @@ package main
 import (
     "context"
     "fmt"
+    "log"
     "github.com/aws/aws-lambda-go/lambda"
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-const tableName = "dev_insight"
+const (
+    tableName = "dev_insight"
+    batchSize = 25
+    maxWorkers = 5
+)
+
+func handleRequest(ctx context.Context) error {
+    log.Println("Lambda関数が呼び出されました")
+    return deleteAllItems()
+}
 
 func deleteAllItems() error {
+    log.Println("関数の実行を開始します")
+
     sess := session.Must(session.NewSession(&aws.Config{
         Region: aws.String("ap-northeast-1"),
     }))
     svc := dynamodb.New(sess)
+    log.Println("DynamoDB クライアントを初期化しました")
 
-    // 全アイテムをスキャン
-    scanInput := &dynamodb.ScanInput{
-        TableName: aws.String(tableName),
-    }
-    
-    result, err := svc.Scan(scanInput)
-    if err != nil {
-        return fmt.Errorf("スキャンエラー: %v", err)
-    }
+    var lastKey map[string]*dynamodb.AttributeValue
+    totalDeleted := 0
 
-    if len(result.Items) == 0 {
-        fmt.Println("テーブルは空です")
-        return nil
-    }
-
-    // 各アイテムを削除
-    for _, item := range result.Items {
-        deleteInput := &dynamodb.DeleteItemInput{
+    for {
+        scanInput := &dynamodb.ScanInput{
             TableName: aws.String(tableName),
-            Key: map[string]*dynamodb.AttributeValue{
-                "discord_id": item["discord_id"],
-                "timestamp":  item["timestamp"],
-            },
+            Limit:    aws.Int64(batchSize),
+            ExclusiveStartKey: lastKey,
         }
 
-        if _, err := svc.DeleteItem(deleteInput); err != nil {
-            return fmt.Errorf("削除エラー: %v", err)
+        result, err := svc.Scan(scanInput)
+        if err != nil {
+            log.Printf("スキャンエラー: %v", err)
+            return fmt.Errorf("スキャンエラー: %v", err)
+        }
+
+        if len(result.Items) == 0 {
+            break
+        }
+
+        var writeRequests []*dynamodb.WriteRequest
+        for _, item := range result.Items {
+            writeRequests = append(writeRequests, &dynamodb.WriteRequest{
+                DeleteRequest: &dynamodb.DeleteRequest{
+                    Key: map[string]*dynamodb.AttributeValue{
+                        "discord_id": item["discord_id"],
+                        "timestamp":  item["timestamp"],
+                    },
+                },
+            })
+        }
+
+        if len(writeRequests) > 0 {
+            input := &dynamodb.BatchWriteItemInput{
+                RequestItems: map[string][]*dynamodb.WriteRequest{
+                    tableName: writeRequests,
+                },
+            }
+
+            _, err = svc.BatchWriteItem(input)
+            if err != nil {
+                log.Printf("バッチ削除エラー: %v", err)
+                return fmt.Errorf("バッチ削除エラー: %v", err)
+            }
+            totalDeleted += len(writeRequests)
+            log.Printf("%d件のアイテムを削除しました", len(writeRequests))
+        }
+
+        lastKey = result.LastEvaluatedKey
+        if lastKey == nil {
+            break
         }
     }
 
-    fmt.Printf("%d件のアイテムを削除しました\n", len(result.Items))
+    log.Printf("合計%d件のアイテムを削除しました", totalDeleted)
     return nil
 }
 
-func handleRequest(ctx context.Context) error {
-    return deleteAllItems()
-}
-
 func main() {
+    log.Println("main関数を開始します")
     lambda.Start(handleRequest)
 }
