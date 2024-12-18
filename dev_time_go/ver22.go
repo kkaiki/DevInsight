@@ -444,7 +444,7 @@ func calculateSessionTimes(times []time.Time, languages []string) ([]SessionTime
     currentLanguage := languages[0]
 
     for i := 1; i < len(times); i++ {
-        if times[i].Sub(sessionEnd) > 1*time.Minute {
+        if times[i].Sub(sessionEnd) > 5*time.Minute {
             sessionTimes = append(sessionTimes, SessionTime{
                 Start:    sessionStart,
                 End:      sessionEnd,
