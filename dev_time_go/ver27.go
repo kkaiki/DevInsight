@@ -91,9 +91,11 @@ func logError(err error) {
     }
 }
 
+// Discord IDからユーザー名を取得する関数
 func getUsername(dg *discordgo.Session, discordUniqueID string) (string, error) {
     user, err := dg.User(discordUniqueID)
     if err != nil {
+        log.Printf("[エラー] ユーザー情報の取得に失敗 (ID: %s): %v", discordUniqueID, err)
         return "", &AppError{
             Type:    "DiscordError",
             Message: "ユーザー情報の取得に失敗",
