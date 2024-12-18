@@ -204,6 +204,16 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
         ExpressionAttributeValues: expr.Values(),
     })
 
+    if err != nil {
+        return nil, &AppError{
+            Type:    "DynamoDBError",
+            Message: "クエリの実行に失敗",
+            Err:     err,
+        }
+    }
+
+    log.Printf("[デバッグ] クエリ結果: %v", result)
+
     var items []InsightData
     if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, &items); err != nil {
         return nil, &AppError{
@@ -215,9 +225,10 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, error) {
 
     var times []time.Time
     for _, item := range items {
+        log.Printf("[デバッグ] 解析対象タイムスタンプ: %s", item.Timestamp)
         t, err := time.Parse(time.RFC3339, item.Timestamp)
         if err != nil {
-            log.Printf("タイムスタンプの解析に失敗: %v", err)
+            log.Printf("[エラー] タイムスタンプの解析に失敗: %v", err)
             continue
         }
         times = append(times, t)
