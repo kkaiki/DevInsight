@@ -92,7 +92,15 @@ func logError(err error) {
 }
 
 // Discord Unique IDからユーザーの表示名を取得する関数
-func getDisplayName(dg *discordgo.Session, guildID, discordUniqueID string) (string, error) {
+func getDisplayName(dg *discordgo.Session, discordUniqueID string) (string, error) {
+    guildID := os.Getenv("DISCORD_GUILD_ID")
+    if guildID == "" {
+        return "", &AppError{
+            Type:    "InvalidInput",
+            Message: "環境変数 DISCORD_GUILD_ID が設定されていません",
+        }
+    }
+
     if dg == nil {
         return "", &AppError{
             Type:    "InvalidSession",
@@ -100,10 +108,10 @@ func getDisplayName(dg *discordgo.Session, guildID, discordUniqueID string) (str
         }
     }
 
-    if guildID == "" || discordUniqueID == "" {
+    if discordUniqueID == "" {
         return "", &AppError{
             Type:    "InvalidInput",
-            Message: "guildIDまたはdiscordUniqueIDが無効です",
+            Message: "discordUniqueIDが無効です",
         }
     }
 
@@ -125,11 +133,17 @@ func getDisplayName(dg *discordgo.Session, guildID, discordUniqueID string) (str
     return displayName, nil
 }
 
-func formatMessage(dg *discordgo.Session, guildID string, data []DiscordWorkTime) string {
+func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
     if len(data) == 0 {
         return "データがありません。"
     }
     
+    guildID := os.Getenv("DISCORD_GUILD_ID")
+    if guildID == "" {
+        log.Printf("[エラー] 環境変数 DISCORD_GUILD_ID が設定されていません")
+        return "内部エラーが発生しました。"
+    }
+
     now := time.Now().UTC()
     sevenDaysAgo := now.AddDate(0, 0, -7)
     startDate := time.Date(
@@ -144,7 +158,7 @@ func formatMessage(dg *discordgo.Session, guildID string, data []DiscordWorkTime
     message += "========================\n"
     
     for i, entry := range data {
-        displayName, err := getDisplayName(dg, guildID, entry.DiscordUniqueID)
+        displayName, err := getDisplayName(dg, entry.DiscordUniqueID)
         if err != nil {
             logError(err)
             displayName = entry.DiscordID // エラーが発生した場合はDiscordIDを使用
@@ -184,7 +198,6 @@ func handleRequest(ctx context.Context) error {
 
     discordToken := os.Getenv("DISCORD_TOKEN")
     channelID := os.Getenv("DISCORD_CHANNEL_ID")
-    guildID := os.Getenv("DISCORD_GUILD_ID") // ギルドIDを環境変数から取得
 
     dg, err := discordgo.New("Bot " + discordToken)
     if err != nil {
@@ -213,7 +226,7 @@ func handleRequest(ctx context.Context) error {
         }
     }
 
-    message := formatMessage(dg, guildID, sortedData)
+    message := formatMessage(dg, sortedData)
     if err := sendDiscordMessage(dg, channelID, message); err != nil {
         return err
     }
