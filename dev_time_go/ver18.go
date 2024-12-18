@@ -7,6 +7,7 @@ import (
     "os"
     "sort"
     "time"
+    "strings"
 
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
@@ -51,7 +52,8 @@ type DiscordWorkTime struct {
 func validateEnv() error {
     discordToken := os.Getenv("DISCORD_TOKEN")
     channelID := os.Getenv("DISCORD_CHANNEL_ID")
-    
+    otherLanguages := os.Getenv("OTHER_LANGUAGES")
+
     if discordToken == "" {
         return &AppError{
             Type:    "ConfigError",
@@ -62,6 +64,12 @@ func validateEnv() error {
         return &AppError{
             Type:    "ConfigError",
             Message: "DISCORD_CHANNEL_ID が設定されていません",
+        }
+    }
+    if otherLanguages == "" {
+        return &AppError{
+            Type:    "ConfigError",
+            Message: "OTHER_LANGUAGES が設定されていません",
         }
     }
     return nil
@@ -405,12 +413,16 @@ func calculateSessionTimes(times []time.Time, languages []string) ([]SessionTime
         return sessionTimes, languageDurations
     }
 
+    otherLanguages := strings.Split(os.Getenv("OTHER_LANGUAGES"), ",") // 追加
     sessionStart := times[0]
     sessionEnd := times[0]
     currentLanguage := languages[0]
 
     for i := 1; i < len(times); i++ {
-        if times[i].Sub(sessionEnd) > 1*time.Minute {
+        if times[i].Sub(sessionEnd) > 1*time.Minute || languages[i] != currentLanguage {
+            if contains(otherLanguages, currentLanguage) { // 追加
+                currentLanguage = "その他" // 追加
+            }
             sessionTimes = append(sessionTimes, SessionTime{
                 Start: sessionStart,
                 End:   sessionEnd,
@@ -423,6 +435,9 @@ func calculateSessionTimes(times []time.Time, languages []string) ([]SessionTime
         sessionEnd = times[i]
     }
 
+    if contains(otherLanguages, currentLanguage) { // 追加
+        currentLanguage = "その他" // 追加
+    }
     sessionTimes = append(sessionTimes, SessionTime{
         Start: sessionStart,
         End:   sessionEnd,
@@ -431,6 +446,15 @@ func calculateSessionTimes(times []time.Time, languages []string) ([]SessionTime
     languageDurations[currentLanguage] += sessionEnd.Sub(sessionStart)
 
     return sessionTimes, languageDurations
+}
+
+func contains(slice []string, item string) bool { // 追加
+    for _, a := range slice {
+        if a == item {
+            return true
+        }
+    }
+    return false
 }
 
 func main() {
