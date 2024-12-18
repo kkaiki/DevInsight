@@ -194,7 +194,7 @@ func sendDiscordMessage(dg *discordgo.Session, channelID, message string) error 
     return nil
 }
 
-func getDiscordIDAndTimes(discordID string) ([]time.Time, map[string]time.Duration, error) {
+func getDiscordIDAndTimes(discordID string) ([]time.Time, []string, error) {
     // 7日前の日付を計算
     now := time.Now().UTC()
     sevenDaysAgo := now.AddDate(0, 0, -7)
@@ -251,7 +251,7 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, map[string]time.Durati
     }
 
     var times []time.Time
-    languageTimes := make(map[string]time.Duration)
+    var languages []string
     for _, item := range items {
         log.Printf("[デバッグ] 解析対象タイムスタンプ: %s", item.Timestamp)
         t, err := time.Parse(time.RFC3339, item.Timestamp)
@@ -260,18 +260,14 @@ func getDiscordIDAndTimes(discordID string) ([]time.Time, map[string]time.Durati
             continue
         }
         times = append(times, t)
-        // 言語データの解析
-        if item.Language != "" {
-            duration := languageTimes[item.Language]
-            languageTimes[item.Language] = duration + time.Minute // 仮定: 1分単位で加算
-        }
+        languages = append(languages, item.Language)
     }
 
     sort.Slice(times, func(i, j int) bool {
         return times[i].Before(times[j])
     })
 
-    return times, languageTimes, nil
+    return times, languages, nil
 }
 
 func getUniqueDiscordIDs() ([]string, error) {
@@ -338,7 +334,6 @@ func getUniqueDiscordIDs() ([]string, error) {
 
     return discordIDs, nil
 }
-
 func getSortedDiscordData() []DiscordWorkTime {
     // 1. Discord IDの取得
     discordIDs, err := getUniqueDiscordIDs()
@@ -353,23 +348,23 @@ func getSortedDiscordData() []DiscordWorkTime {
         return nil
     }
 
-    // 2. 各ユーザーの時間データ取得
+    // 2. 各ユーザーの言語ごとの時間データ取得
     var data []DiscordWorkTime
     for _, discordID := range discordIDs {
         times, languages, err := getDiscordIDAndTimes(discordID)
         if err != nil {
-            log.Printf("[エラー] 時間データの取得失敗 (ID: %s): %v", discordID, err)
+            log.Printf("[エラー] 言語データの取得失敗 (ID: %s): %v", discordID, err)
             continue
         }
-        log.Printf("[情報] ユーザー %s の時間データ数: %d", discordID, len(times))
+        log.Printf("[情報] ユーザー %s の言語データ数: %d", discordID, len(languages))
 
         if len(times) > 0 {
-            sessionTimes := calculateSessionTimes(times)
+            sessionTimes, languageDurations := calculateSessionTimes(times, languages)
             totalWorkTime := getTotalWorkTime(sessionTimes)
             data = append(data, DiscordWorkTime{
                 DiscordID: discordID,
                 TotalTime: totalWorkTime,
-                Languages: languages,
+                Languages: languageDurations,
             })
             log.Printf("[情報] ユーザー %s の合計作業時間: %v", discordID, totalWorkTime)
         }
@@ -388,47 +383,54 @@ func getSortedDiscordData() []DiscordWorkTime {
     return data
 }
 
-func calculateSessionTimes(times []time.Time) []struct {
-    Start time.Time
-    End   time.Time
-} {
-    var sessionTimes []struct {
-        Start time.Time
-        End   time.Time
-    }
-
-    sessionStart := times[0]
-    sessionEnd := times[0]
-
-    for i := 1; i < len(times); i++ {
-        if times[i].Sub(sessionEnd) > 5*time.Minute {
-            sessionTimes = append(sessionTimes, struct {
-                Start time.Time
-                End   time.Time
-            }{Start: sessionStart, End: sessionEnd})
-            sessionStart = times[i]
-        }
-        sessionEnd = times[i]
-    }
-
-    sessionTimes = append(sessionTimes, struct {
-        Start time.Time
-        End   time.Time
-    }{Start: sessionStart, End: sessionEnd})
-
-    return sessionTimes
-}
-
-// セッションタイムの総合時間を計算する関数
-func getTotalWorkTime(sessionTimes []struct {
-    Start time.Time
-    End   time.Time
-}) time.Duration {
+func getTotalWorkTime(sessionTimes []SessionTime) time.Duration {
     var totalTime time.Duration
     for _, session := range sessionTimes {
         totalTime += session.End.Sub(session.Start)
     }
     return totalTime
+}
+
+type SessionTime struct {
+    Start time.Time
+    End   time.Time
+    Language string
+}
+
+func calculateSessionTimes(times []time.Time, languages []string) ([]SessionTime, map[string]time.Duration) {
+    var sessionTimes []SessionTime
+    languageDurations := make(map[string]time.Duration)
+
+    if len(times) == 0 {
+        return sessionTimes, languageDurations
+    }
+
+    sessionStart := times[0]
+    sessionEnd := times[0]
+    currentLanguage := languages[0]
+
+    for i := 1; i < len(times); i++ {
+        if times[i].Sub(sessionEnd) > 1*time.Minute {
+            sessionTimes = append(sessionTimes, SessionTime{
+                Start: sessionStart,
+                End:   sessionEnd,
+                Language: currentLanguage,
+            })
+            languageDurations[currentLanguage] += sessionEnd.Sub(sessionStart)
+            sessionStart = times[i]
+            currentLanguage = languages[i]
+        }
+        sessionEnd = times[i]
+    }
+
+    sessionTimes = append(sessionTimes, SessionTime{
+        Start: sessionStart,
+        End:   sessionEnd,
+        Language: currentLanguage,
+    })
+    languageDurations[currentLanguage] += sessionEnd.Sub(sessionStart)
+
+    return sessionTimes, languageDurations
 }
 
 func main() {
