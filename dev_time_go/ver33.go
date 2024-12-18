@@ -135,6 +135,7 @@ func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
     }
     
     message += "========================\n"
+    message += "ダウンロードはこちらから[url](https://marketplace.visualstudio.com/items?itemName=DevInsights.vscode-DevInsights)\n"
     return message
 }
 
