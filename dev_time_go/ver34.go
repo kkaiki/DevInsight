@@ -110,6 +110,11 @@ func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
     message += "========================\n"
     
     for i, entry := range data {
+        // 1時間未満の場合はスキップ
+        if entry.TotalTime < time.Hour {
+            continue
+        }
+
         displayName := fmt.Sprintf("<@%s>", entry.DiscordUniqueID)
 
         hours := int(entry.TotalTime.Hours())
@@ -135,10 +140,9 @@ func formatMessage(dg *discordgo.Session, data []DiscordWorkTime) string {
     }
     
     message += "========================\n"
-    message += "ダウンロードはこちらから[url](https://marketplace.visualstudio.com/items?itemName=DevInsights.vscode-DevInsights)\n"
+    message += "[\n\nダウンロード先url](https://marketplace.visualstudio.com/items?itemName=DevInsights.vscode-DevInsights)\n"
     return message
 }
-
 func handleRequest(ctx context.Context) error {
     if err := validateEnv(); err != nil {
         logError(err)
